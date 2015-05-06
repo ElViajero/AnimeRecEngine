@@ -1,5 +1,9 @@
 package animeRecommendationEnginer.server.dbRequestHandler.services;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,10 +26,40 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 	IDBRequestExecutor iDBRequestExecutor;
 
 	@Override
-	public List<Map<String, String>> getWatchedAnime(
-			Map<String, String> requestMap) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Map<String, String>> getWatchedAnime(String userId) {
+
+		// formulate the query
+		String query = "SELECT * FROM WatchedAnimeTable WHERE userId LIKE "
+				+ "\"" + userId + "\"" + ";";
+
+		ResultSet queryResult = iDBRequestExecutor.executeQuery(query);
+
+		// get the results
+		Map<String, String> statusMap = new HashMap<String, String>();
+		statusMap.put("Status", "Failed");
+		statusMap.put("Reason", "UserId not found.");
+		List<Map<String, String>> resultMapList = new ArrayList<Map<String, String>>();
+		resultMapList.add(statusMap);
+		try {
+
+			while (queryResult.next()) {
+
+				statusMap.put("Status", "Success");
+				String animeId = queryResult.getString("animeId");
+				String animeTitle = queryResult.getString("animeTitle");
+				String animeRating = queryResult.getString("animeRating");
+				Map<String, String> animeEntryMap = new HashMap<String, String>();
+				animeEntryMap.put("animeId", animeId);
+				animeEntryMap.put("animeTitle", animeTitle);
+				animeEntryMap.put("animeRating", animeRating);
+				animeEntryMap.put("userId", userId);
+				resultMapList.add(animeEntryMap);
+			}
+		} catch (SQLException e) {
+			return resultMapList;
+		}
+		System.out.println("Fetched from DB : " + resultMapList);
+		return resultMapList;
 	}
 
 	@Override
@@ -122,8 +156,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 					.get("animeRank") : "";
 
 			// check mandatory fields
-			if (animeId.equals("") || animeTitle.equals("")
-					|| animeLink.equals("")) {
+			if (animeId.equals("") || animeTitle.equals("")) {
 				System.out
 						.println("animeId or animeTitle are blank in AnimeTable."
 								+ "The animeTitle is  : "

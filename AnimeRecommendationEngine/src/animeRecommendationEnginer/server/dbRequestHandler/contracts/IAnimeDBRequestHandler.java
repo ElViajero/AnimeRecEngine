@@ -14,8 +14,7 @@ import javax.ejb.Local;
 @Local
 public interface IAnimeDBRequestHandler {
 
-	public List<Map<String, String>> getWatchedAnime(
-			Map<String, String> requestMap);
+	public List<Map<String, String>> getWatchedAnime(String userId);
 
 	public boolean updateWatchedAnime(List<Map<String, String>> requestMap,
 			String userId);

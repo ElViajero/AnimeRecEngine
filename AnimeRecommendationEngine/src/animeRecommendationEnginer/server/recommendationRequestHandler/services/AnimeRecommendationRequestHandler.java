@@ -54,26 +54,18 @@ public class AnimeRecommendationRequestHandler implements
 					.setErrorMessage("You have not supplied an username.");
 		} else {// we're in business.
 
-			// TODO check the DB here
-			List<String> animeListHTMLSourceList = requestExecutor
-					.getHTMLSource("http://myanimelist.net/animelist/"
-							+ requestMap.get("userId"));
+			// check the DB for list.
+			List<Map<String, String>> watchedAnimeMapList = iAnimeDBRequestHandler
+					.getWatchedAnime(requestMap.get("userId"));
 
-			System.out.println("HTML Source list is : "
-					+ animeListHTMLSourceList);
-
-			// parse the content
-			Object classObject = iReflectionManager
-					.getMyBeanFromClassName(prefixString + "AnimeList"
-							+ suffixString);
-
-			// get the map back.
-			List<Map<String, String>> watchedAnimeMapList = (List<Map<String, String>>) iReflectionManager
-					.invokeMethod(classObject, "parseHtml",
-							animeListHTMLSourceList, "List");
+			// remove the status map in the case of successful fetch.
+			if (watchedAnimeMapList.get(0).get("Status").equals("Success"))
+				watchedAnimeMapList.remove(0);
+			// otherwise fetch it.
+			else
+				watchedAnimeMapList = fetchAnimeList(requestMap);
 
 			if (!watchedAnimeMapList.isEmpty()) {
-
 				// persist it to the db
 				iAnimeDBRequestHandler.updateWatchedAnime(watchedAnimeMapList,
 						requestMap.get("userId"));
@@ -85,5 +77,34 @@ public class AnimeRecommendationRequestHandler implements
 		}
 
 		return recommendationResponse;
+	}
+
+	/**
+	 * This method fetches the animeList. Called in case the DB does not contain
+	 * the AnimeList.
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	private List<Map<String, String>> fetchAnimeList(
+			Map<String, String> requestMap) {
+		List<String> animeListHTMLSourceList = requestExecutor
+				.getHTMLSource("http://myanimelist.net/animelist/"
+						+ requestMap.get("userId"));
+
+		System.out.println("HTML Source list is : " + animeListHTMLSourceList);
+
+		// parse the content
+		Object classObject = iReflectionManager
+				.getMyBeanFromClassName(prefixString + "AnimeList"
+						+ suffixString);
+
+		// get the map back.
+		List<Map<String, String>> watchedAnimeMapList = (List<Map<String, String>>) iReflectionManager
+				.invokeMethod(classObject, "parseHtml",
+						animeListHTMLSourceList, "List");
+
+		return watchedAnimeMapList;
+
 	}
 }

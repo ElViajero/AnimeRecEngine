@@ -66,7 +66,7 @@ public class DBRequestExecutor implements IDBRequestExecutor {
 
 		}
 		System.out.println("resultSet : " + resultSet);
-		return null;
+		return resultSet;
 	}
 
 	@Override
