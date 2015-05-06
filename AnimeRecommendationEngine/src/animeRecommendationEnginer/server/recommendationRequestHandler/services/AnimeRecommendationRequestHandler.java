@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import animeRecommendationEnginer.server.dbRequestHandler.contracts.IAnimeDBRequestHandler;
 import animeRecommendationEnginer.server.recommendationRequestHandler.contracts.IAnimeRecommendationRequestHandler;
 import animeRecommendationEnginer.server.recommendationRequestHandler.helper.RequestExecutor;
 import animeRecommendationEnginer.server.recommendationRequestHandler.properties.RecommendationResponseProperties;
@@ -24,9 +25,10 @@ public class AnimeRecommendationRequestHandler implements
 
 	@Inject
 	IReflectionManager iReflectionManager;
-
 	@Inject
 	RequestExecutor requestExecutor;
+	@Inject
+	IAnimeDBRequestHandler iAnimeDBRequestHandler;
 
 	@Override
 	public RecommendationResponseProperties getSimilar(
@@ -46,9 +48,8 @@ public class AnimeRecommendationRequestHandler implements
 
 		System.out
 				.println("reaching getWatched in AnimeRecommendationRequestHandler");
-
+		RecommendationResponseProperties recommendationResponse = new RecommendationResponseProperties();
 		if (!requestMap.containsKey("userId")) {
-			RecommendationResponseProperties recommendationResponse = new RecommendationResponseProperties();
 			recommendationResponse
 					.setErrorMessage("You have not supplied an username.");
 		} else {// we're in business.
@@ -57,20 +58,32 @@ public class AnimeRecommendationRequestHandler implements
 			List<String> animeListHTMLSourceList = requestExecutor
 					.getHTMLSource("http://myanimelist.net/animelist/"
 							+ requestMap.get("userId"));
+
+			System.out.println("HTML Source list is : "
+					+ animeListHTMLSourceList);
+
 			// parse the content
 			Object classObject = iReflectionManager
 					.getMyBeanFromClassName(prefixString + "AnimeList"
 							+ suffixString);
 
 			// get the map back.
-			List<Map<String, String>> returnVal = (List<Map<String, String>>) iReflectionManager
+			List<Map<String, String>> watchedAnimeMapList = (List<Map<String, String>>) iReflectionManager
 					.invokeMethod(classObject, "parseHtml",
 							animeListHTMLSourceList, "List");
 
-			System.out.println("return map is : " + returnVal);
+			if (!watchedAnimeMapList.isEmpty()) {
+
+				// persist it to the db
+				iAnimeDBRequestHandler.updateWatchedAnime(watchedAnimeMapList,
+						requestMap.get("userId"));
+				// set up the response
+				recommendationResponse.setContentList(watchedAnimeMapList);
+				recommendationResponse.setSuccess("true");
+			}
 
 		}
 
-		return null;
+		return recommendationResponse;
 	}
 }

@@ -16,6 +16,6 @@ public interface IDBRequestExecutor {
 
 	ResultSet executeQuery(String query);
 
-	ResultSet exeucteUpdate(String query);
+	boolean exeucteUpdate(String query);
 
 }

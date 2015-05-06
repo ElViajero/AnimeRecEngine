@@ -70,7 +70,7 @@ public class DBRequestExecutor implements IDBRequestExecutor {
 	}
 
 	@Override
-	public ResultSet exeucteUpdate(String query) {
+	public boolean exeucteUpdate(String query) {
 
 		getDBManagerInstance();
 
@@ -82,12 +82,12 @@ public class DBRequestExecutor implements IDBRequestExecutor {
 		try {
 			statementInstance.executeUpdate(query);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			System.out.println("SQLException in executeUpdate");
 			e.printStackTrace();
+			return false;
 
 		}
 
-		return resultSet;
+		return true;
 	}
 }

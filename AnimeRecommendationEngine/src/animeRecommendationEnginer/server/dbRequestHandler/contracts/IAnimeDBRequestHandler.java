@@ -17,7 +17,9 @@ public interface IAnimeDBRequestHandler {
 	public List<Map<String, String>> getWatchedAnime(
 			Map<String, String> requestMap);
 
-	public List<Map<String, String>> updateWatchedAnime(
-			Map<String, String> requestMap);
+	public boolean updateWatchedAnime(List<Map<String, String>> requestMap,
+			String userId);
+
+	public boolean updateAnime(List<Map<String, String>> requestMapList);
 
 }

@@ -24,6 +24,7 @@ public class RequestExecutor {
 	public List<String> getHTMLSource(String requestURL) {
 		webDriver.get(requestURL);
 		String htmlSouceString = webDriver.getPageSource();
+		System.out.println("HTML Source is :" + htmlSouceString);
 		String[] lines = htmlSouceString.split("\n");
 		System.out.println("list is : " + Arrays.asList(lines));
 		return Arrays.asList(lines);
