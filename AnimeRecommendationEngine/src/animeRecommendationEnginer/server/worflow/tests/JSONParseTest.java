@@ -10,6 +10,11 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.Test;
 
+/**
+ * This is a test class for JSON parsing.
+ * @author tejasvamsingh
+ *
+ */
 public class JSONParseTest {
 
 	@Test
