@@ -7,5 +7,5 @@ import javax.ejb.Local;
 
 @Local
 public interface IHTMLParser {
-	List<Map<String, String>> parseHtml(List<String> htmlSourceList);
+	List<Map<String, String>> parseHtml(String htmlSource);
 }

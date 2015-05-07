@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import animeRecommendationEnginer.server.htmlParser.contracts.IHTMLParser;
 
@@ -20,66 +23,102 @@ import animeRecommendationEnginer.server.htmlParser.contracts.IHTMLParser;
 public class UserRecommendationsHTMLParser implements IHTMLParser {
 
 	@Override
-	public List<Map<String, String>> parseHtml(List<String> htmlSourceList) {
+	public List<Map<String, String>> parseHtml(String htmlSource) {
 
-		String key = "";
-		List<Map<String, String>> tableMapList = new ArrayList<Map<String, String>>();
-		Map<String, String> tableRowMap = null;
+		List<Map<String, String>> recommendedAnimeMapList = new ArrayList<Map<String, String>>();
+		Document d = Jsoup.parse(htmlSource);
+		// get the table data elements
+		Elements tableDataElements = d.getElementsByTag("td");
 
-		for (String line : htmlSourceList) {
+		for (Element tableDataElement : tableDataElements) {
 
-			// match against an anime title
-			String animeTitlePatternString = "<a .*href=\"/anime/.*>([A-Za-z :,0-9!]*?)</strong";
-			Pattern animeTitlePattern = Pattern
-					.compile(animeTitlePatternString);
-			Matcher animeTitleMatcher = animeTitlePattern.matcher(line);
+			String animeTitle = ""; // initialize our fields
+			String animeLink = ""; // to empty
+			String recommenderId = ""; // for each new table data
+			String numberOfRecommendations = "";
 
-			if (animeTitleMatcher.find()) { // if we find one create a new entry
-				String animeTitle = animeTitleMatcher.group(1);
-				System.out.println(animeTitle);
-				if (tableRowMap != null) {
-					if (!tableRowMap.containsKey("numberOfRecommendations"))
-						tableRowMap.put("numberOfRecommendations", "1");
-					tableMapList.add(tableRowMap);
+			Elements divElements = tableDataElement.getElementsByTag("div");
+			for (Element divElement : divElements) {
+				boolean noUpdate = false;
+				// try and see if the div contains links
+				Elements animeLinkElements = divElement
+						.getElementsByAttribute("href");
+				if (animeLinkElements == null || animeLinkElements.size() == 0)
+					continue;
+
+				Element animeLinkElement = animeLinkElements.first();
+				String currentLink = animeLinkElement.attr("href");
+				String[] parts = currentLink.split("/");
+				// see if the link is an anime link
+				if (parts.length != 4 || !parts[1].equals("anime"))
+					continue;
+
+				// check if it's the first anime link. There
+				// may be multiple inside a table data.
+				if (!animeTitle.equals(""))
+					continue;
+				if (!animeLink.equals(""))
+					continue;
+
+				// if so set the fields
+				animeLink = currentLink;
+				animeTitle = animeLinkElement.text();
+
+				// get the immediate next div
+				Element nextDivElement = divElement.nextElementSibling();
+				if (nextDivElement == null)
+					continue;
+				Elements nextDivLinkElements = nextDivElement
+						.getElementsByAttribute("href");
+				if (nextDivLinkElements == null)
+					continue;
+				// check links in div for a profile link
+				for (Element linkElement : nextDivLinkElements) {
+					if (!linkElement.attr("href").contains("profile"))
+						continue;
+					// grab it if it's the first one
+					if (recommenderId.equals("")) {
+						recommenderId = linkElement.text();
+					}
+					break;
+
 				}
-				tableRowMap = new HashMap<String, String>();
-				tableRowMap.put("animeTitle", animeTitle);
 
-				// also extract out the link
-				String animeLinkPatternString = "<a .*href=\"(/anime/[A-Za-z_0-9/]+/*?).*>";
-				Pattern animeLinkPattern = Pattern
-						.compile(animeLinkPatternString);
-				Matcher animeLinkMatcher = animeLinkPattern.matcher(line);
-				if (animeLinkMatcher.find()) {
-					tableRowMap.put("animeLink", animeLinkMatcher.group(1));
+				// finally check the number of recommendations.
+				try {
+					numberOfRecommendations = nextDivElement
+							.nextElementSibling().getElementsByTag("strong")
+							.first().text();
+
+				} catch (NullPointerException e) {
+					continue;
 				}
+
 			}
 
-			String recommenderPatternString = "<a .*href=\"/profile/.*>([A-Za-z]*?)</a>";
-			Pattern recommenderPattern = Pattern
-					.compile(recommenderPatternString);
-			Matcher recommenderMatcher = recommenderPattern.matcher(line);
-			if (recommenderMatcher.find()) {
-				if (!tableRowMap.containsKey("recommendedBy"))
-					tableRowMap.put("recommendedBy",
-							recommenderMatcher.group(1));
-			}
+			// check for complete entries and add to List.
+			if (!animeTitle.equalsIgnoreCase("")) {
+				Map<String, String> recommededAnimeMap = new HashMap<String, String>();
+				recommededAnimeMap.put("animeTitle", animeTitle);
+				recommededAnimeMap.put("animeLink", animeLink);
+				recommededAnimeMap.put("recommenderId", recommenderId);
 
-			// finally get how many people are recommeding it.
-			String numberOfRecommendationsPatternString = ">([0-9]+?)</";
-			Pattern numberOfRecommendationsPattern = Pattern
-					.compile(numberOfRecommendationsPatternString);
-			Matcher numberOfRecommendationsMatcher = numberOfRecommendationsPattern
-					.matcher(line);
-			if (numberOfRecommendationsMatcher.find()) {
-				if (tableRowMap != null
-						&& !tableRowMap.containsKey("numberOfRecommendations"))
-					tableRowMap.put("numberOfRecommendations",
-							numberOfRecommendationsMatcher.group(1));
+				// special adjustment for numRecommendations
+				// to account for TOTAL recommendations.
+				if (numberOfRecommendations.equals(""))
+					numberOfRecommendations = "1";
+				else
+					numberOfRecommendations = String.valueOf(Integer
+							.parseInt(numberOfRecommendations) + 1);
+				recommededAnimeMap.put("numberOfRecommendations",
+						numberOfRecommendations);
+
+				// add the map to the list.
+				recommendedAnimeMapList.add(recommededAnimeMap);
 			}
 
 		}
 
-		return tableMapList;
+		return recommendedAnimeMapList;
 	}
 }

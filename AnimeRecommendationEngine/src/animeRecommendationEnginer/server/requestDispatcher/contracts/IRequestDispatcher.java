@@ -4,9 +4,12 @@ import java.util.Map;
 
 import javax.ejb.Local;
 
+import animeRecommendationEnginer.server.recommendationRequestHandler.properties.RecommendationResponseProperties;
+
 @Local
 public interface IRequestDispatcher {
 
-	public void dispatchRequest(Map<String, String> request);
+	public RecommendationResponseProperties dispatchRequest(
+			Map<String, String> request);
 
 }

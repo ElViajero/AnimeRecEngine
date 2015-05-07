@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import animeRecommendationEnginer.server.recommendationRequestHandler.properties.RecommendationResponseProperties;
 import animeRecommendationEnginer.server.requestDispatcher.contracts.IRequestDispatcher;
 
 import com.google.gson.Gson;
@@ -75,7 +76,13 @@ public class RequestHandler extends HttpServlet {
 				stringStringMap);
 
 		// dispatch the request.
-		iRequestDispatcher.dispatchRequest(requestMap);
-	}
+		RecommendationResponseProperties result = iRequestDispatcher
+				.dispatchRequest(requestMap);
 
+		// return the response
+
+		// Writer w = response.getWriter();
+		// w.append(gson.toJson(result));
+		// w.close();
+	}
 }

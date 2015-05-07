@@ -5,6 +5,7 @@ import java.util.Map;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
+import animeRecommendationEnginer.server.recommendationRequestHandler.properties.RecommendationResponseProperties;
 import animeRecommendationEnginer.server.reflectionManager.contracts.IReflectionManager;
 import animeRecommendationEnginer.server.requestDispatcher.contracts.IRequestDispatcher;
 
@@ -25,7 +26,8 @@ public class RequestDispatcher implements IRequestDispatcher {
 	IReflectionManager iReflectionManager;
 
 	@Override
-	public void dispatchRequest(Map<String, String> requestMap) {
+	public RecommendationResponseProperties dispatchRequest(
+			Map<String, String> requestMap) {
 
 		System.out.println("Reaching dispatchRequest in RequestDispatcher.");
 		try {
@@ -36,12 +38,13 @@ public class RequestDispatcher implements IRequestDispatcher {
 							+ requestMap.get("requestId") + suffixString);
 
 			// get the method
-			iReflectionManager.invokeMethod(classObject,
-					requestMap.get("requestType"), requestMap, "Map");
+			return (RecommendationResponseProperties) iReflectionManager
+					.invokeMethod(classObject, requestMap.get("requestType"),
+							requestMap, "Map");
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return null;
 		}
+
 	}
 }

@@ -12,7 +12,7 @@ import animeRecommendationEnginer.server.recommendationRequestHandler.properties
 import animeRecommendationEnginer.server.reflectionManager.contracts.IReflectionManager;
 
 /**
- * This class handles anime recommedations.
+ * This class handles anime recommendations.
  * 
  * @author tejasvamsingh
  *
@@ -33,8 +33,10 @@ public class AnimeRecommendationRequestHandler implements
 	@Override
 	public RecommendationResponseProperties getSimilar(
 			Map<String, String> requestMap) {
+
 		System.out
 				.println("reaching getSimilar in AnimeRecommendationRequestHandler");
+
 		return null;
 	}
 
@@ -62,13 +64,17 @@ public class AnimeRecommendationRequestHandler implements
 			if (watchedAnimeMapList.get(0).get("Status").equals("Success"))
 				watchedAnimeMapList.remove(0);
 			// otherwise fetch it.
-			else
-				watchedAnimeMapList = fetchAnimeList(requestMap);
+			else {
+				String urlString = "http://myanimelist.net/animelist/"
+						+ requestMap.get("userId");
+				watchedAnimeMapList = fetchList(urlString, "AnimeList");
 
-			if (!watchedAnimeMapList.isEmpty()) {
 				// persist it to the db
 				iAnimeDBRequestHandler.updateWatchedAnime(watchedAnimeMapList,
 						requestMap.get("userId"));
+			}
+
+			if (!watchedAnimeMapList.isEmpty()) {
 				// set up the response
 				recommendationResponse.setContentList(watchedAnimeMapList);
 				recommendationResponse.setSuccess("true");
@@ -80,29 +86,26 @@ public class AnimeRecommendationRequestHandler implements
 	}
 
 	/**
-	 * This method fetches the animeList. Called in case the DB does not contain
-	 * the AnimeList.
+	 * This method fetches from the website if results are not available in the
+	 * DB.
 	 * 
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private List<Map<String, String>> fetchAnimeList(
-			Map<String, String> requestMap) {
-		List<String> animeListHTMLSourceList = requestExecutor
-				.getHTMLSource("http://myanimelist.net/animelist/"
-						+ requestMap.get("userId"));
+	private List<Map<String, String>> fetchList(String urlString,
+			String htmlParserString) {
+		String htmlSource = requestExecutor.getHTMLSource(urlString);
 
-		System.out.println("HTML Source list is : " + animeListHTMLSourceList);
+		System.out.println("HTML Source list is : " + htmlSource);
 
 		// parse the content
 		Object classObject = iReflectionManager
-				.getMyBeanFromClassName(prefixString + "AnimeList"
+				.getMyBeanFromClassName(prefixString + htmlParserString
 						+ suffixString);
 
 		// get the map back.
 		List<Map<String, String>> watchedAnimeMapList = (List<Map<String, String>>) iReflectionManager
-				.invokeMethod(classObject, "parseHtml",
-						animeListHTMLSourceList, "List");
+				.invokeMethod(classObject, "parseHtml", htmlSource, "String");
 
 		return watchedAnimeMapList;
 

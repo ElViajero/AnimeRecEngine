@@ -4,67 +4,51 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import animeRecommendationEnginer.server.htmlParser.contracts.IHTMLParser;
 
 public class AnimeListHTMLParser implements IHTMLParser {
 
 	@Override
-	public List<Map<String, String>> parseHtml(List<String> htmlSourceList) {
+	public List<Map<String, String>> parseHtml(String htmlSource) {
+		List<Map<String, String>> watchedAnimeMapList = new ArrayList<Map<String, String>>();
 
-		String key = "";
-		List<Map<String, String>> tableMapList = new ArrayList<Map<String, String>>();
-		Map<String, String> tableRowMap = null;
+		Document d = Jsoup.parse(htmlSource);
+		Elements tableRows = d.getElementsByTag("tr");
 
-		for (String line : htmlSourceList) {
-			if (line.contains("</tr>") && !tableRowMap.isEmpty())
-				tableMapList.add(tableRowMap);
-			if (line.contains("<tr"))
-				tableRowMap = new HashMap<String, String>();
+		for (Element e : tableRows) {
+			Elements animeListElements = e.getElementsByClass("animeTitle");
 
-			if (tableRowMap != null) { // currently processing a table
-				String pattern = ">([A-Za-z :,0-9]*?)</";
-				Pattern p = Pattern.compile(pattern);
-				Matcher matcher = p.matcher(line);
-				if (matcher.find()) {
-					String word = matcher.group(1);
+			if (animeListElements == null || animeListElements.size() == 0)
+				continue;
 
-					if (!key.equals(""))
-						tableRowMap.put(key, word);
+			Element animeLinkElement = animeListElements.get(0);
+			Element animeLinktableDataElement = animeLinkElement.parent();
+			Element ratingElement = animeLinktableDataElement
+					.nextElementSibling();
+			Element typeElement = ratingElement.nextElementSibling();
 
-					// extra processing step to parse out the links.
-					if (key.equals("animeTitle")) {
-						String linkPatternString = "<a .*href=\"(.*?)\".*";
-						Pattern linkPattern = Pattern
-								.compile(linkPatternString);
-						Matcher linkMatcher = linkPattern.matcher(line);
+			Map<String, String> watchedAnimeMap = new HashMap<String, String>();
 
-						if (linkMatcher.find()) {
-							String animeLink = linkMatcher.group(1);
-							tableRowMap.put("animeLink", animeLink);
-						}
+			String animeLink = animeLinkElement.attr("href");
+			String animeTitle = animeLinkElement.text();
+			String animeRating = ratingElement.text();
+			String animeType = typeElement.text();
 
-					}
+			watchedAnimeMap.put("animeTitle", animeTitle);
+			watchedAnimeMap.put("animeLink", animeLink);
+			watchedAnimeMap.put("animeRating", animeRating);
+			watchedAnimeMap.put("animeType", animeType);
 
-					if (word.equalsIgnoreCase("more"))
-						key = "animeTitle";
-					else if (key.equalsIgnoreCase("animeTitle"))
-						key = "animeRating";
-					else if (key.equalsIgnoreCase("animeRating"))
-						key = "animeType";
-					else if (key.equalsIgnoreCase("animeType"))
-						key = "watchedTill";
-					else
-						key = "";
-
-				}
-
-			}
+			watchedAnimeMapList.add(watchedAnimeMap);
 
 		}
 
-		return tableMapList;
+		return watchedAnimeMapList;
 	}
 }

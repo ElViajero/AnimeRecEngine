@@ -42,6 +42,9 @@ public class ReflectionManager implements IReflectionManager {
 			else if (ParameterType.equals("List"))
 				method = classObject.getClass().getDeclaredMethod(methodName,
 						List.class);
+			else if (ParameterType.equals("String"))
+				method = classObject.getClass().getDeclaredMethod(methodName,
+						String.class);
 
 			if (method != null)
 				return method.invoke(classObject, parameters);
