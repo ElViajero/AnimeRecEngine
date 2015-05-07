@@ -86,15 +86,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 				animeId = animeEntry.get("animeId");
 
 			// try and extract the animeId
-			if (!animeEntry.containsKey("animeId")) {
-				if (animeEntry.containsKey("animeLink")) {
-					String[] parts = animeEntry.get("animeLink").split("/");
-					animeId = parts[2];
-					System.out.println("The id extracted is : " + animeId);
-					animeEntry.put("animeId", animeId); // add it to the map for
-														// later use.
-				}
-			}
+			animeId = extractAnimeId(animeEntry);
 
 			// check if some fields are still missing
 			if (animeId.equals("") || animeTitle.equals("")
@@ -132,6 +124,20 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 
 		return true;
 
+	}
+
+	private String extractAnimeId(Map<String, String> animeEntry) {
+		String animeId = "";
+		if (!animeEntry.containsKey("animeId")) {
+			if (animeEntry.containsKey("animeLink")) {
+				String[] parts = animeEntry.get("animeLink").split("/");
+				animeId = parts[2];
+				System.out.println("The id extracted is : " + animeId);
+				animeEntry.put("animeId", animeId); // add it to the map for
+													// later use.
+			}
+		}
+		return animeId;
 	}
 
 	@Override
@@ -195,5 +201,144 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		}
 
 		return true;
+	}
+
+	@Override
+	public List<Map<String, String>> getAnime(String animeId) {
+
+		// formulate the query
+		String query = "SELECT * FROM AnimeTable WHERE animeId LIKE \""
+				+ animeId + "\";";
+
+		ResultSet queryResult = iDBRequestExecutor.executeQuery(query);
+
+		// get the results
+		Map<String, String> statusMap = new HashMap<String, String>();
+		statusMap.put("Status", "Failed");
+		statusMap.put("Reason", "UserId not found.");
+		List<Map<String, String>> resultMapList = new ArrayList<Map<String, String>>();
+		resultMapList.add(statusMap);
+
+		try {
+			while (queryResult.next()) {
+
+				statusMap.put("Status", "Success");
+
+				// extract fields.
+				animeId = queryResult.getString("animeId"); // redundant
+				String animeTitle = queryResult.getString("animeTitle");
+				String animeLink = queryResult.getString("animeLink");
+				String animeImage = queryResult.getString("animeImage");
+				String animeType = queryResult.getString("animeType");
+				String animeRank = queryResult.getString("animeRank");
+
+				Map<String, String> animeEntryMap = new HashMap<String, String>();
+				animeEntryMap.put("animeTitle", animeTitle);
+				animeEntryMap.put("animeLink", animeLink);
+				animeEntryMap.put("animeRank", animeRank);
+				animeEntryMap.put("animeType", animeType);
+				animeEntryMap.put("animeImage", animeImage);
+				resultMapList.add(animeEntryMap);
+
+			}
+		} catch (SQLException e) {
+			System.out.println("something went wrong will fetching anime.");
+			e.printStackTrace();
+		}
+
+		return resultMapList;
+	}
+
+	@Override
+	public boolean updateAnimeRecommendations(
+			List<Map<String, String>> recommendedAnimeMapList, String animeId) {
+
+		// for each recommended anime.
+		for (Map<String, String> recommendedAnimeEntry : recommendedAnimeMapList) {
+
+			// try and extract the animeId.
+			String recommendedAnimeId = extractAnimeId(recommendedAnimeEntry);
+			String recommederId = recommendedAnimeEntry.get("recommenderId");
+			String numberOfRecommendations = recommendedAnimeEntry
+					.get("numberOfRecommendations");
+
+			// hard fail.
+			if (recommendedAnimeId.equals("")) {
+				System.out.println("recommendedAnimeId is empty. AnimeEntry : "
+						+ recommendedAnimeEntry);
+				return false;
+			}
+
+			// formulate the query
+			String query = "INSERT INTO AnimeRecTable VALUES(" + "\"" + animeId
+					+ "\"," + "\"" + recommendedAnimeId + "\"," + "\""
+					+ recommederId + "\"," + "\"" + numberOfRecommendations
+					+ "\") ON DUPLICATE KEY UPDATE "
+					+ "numRecommendations=VALUES(numRecommendations),"
+					+ "recommenderId=VALUES(recommenderId);";
+
+			if (!iDBRequestExecutor.exeucteUpdate(query)) {
+				System.out.println("something is going wrong.");
+				System.out.flush();
+				return false;
+			}
+
+			// change recommededAnimeId to animeId
+			recommendedAnimeEntry.put("animeId", recommendedAnimeId);
+
+		}
+
+		// try and add to anime table as well
+		updateAnime(recommendedAnimeMapList);
+		return true;
+	}
+
+	@Override
+	public List<Map<String, String>> getRecommendedAnime(String animeId) {
+
+		// formulate the query
+		String query = " SELECT * FROM ( AnimeRectable JOIN animeTable ON AnimeRecTable.recommendedAnimeId=animeTable.animeId) "
+				+ "WHERE AnimeRecTable.animeId LIKE \"" + animeId + "\";";
+
+		// execute the query
+		ResultSet queryResult = iDBRequestExecutor.executeQuery(query);
+
+		// get the results
+		Map<String, String> statusMap = new HashMap<String, String>();
+		statusMap.put("Status", "Failed");
+		statusMap.put("Reason", "UserId not found.");
+		List<Map<String, String>> resultMapList = new ArrayList<Map<String, String>>();
+		resultMapList.add(statusMap);
+
+		try {
+			while (queryResult.next()) {
+
+				// populate the fields.
+				statusMap.put("Status", "Success");
+				animeId = queryResult.getString("animeId");
+				String recommendedAnimeId = queryResult
+						.getString("recommendedAnimeId");
+				String recommenderId = queryResult.getString("recommenderId");
+				String numberOfRecommendations = queryResult
+						.getString("numRecommendations");
+				String animeTitle = queryResult.getString("animeTitle");
+
+				Map<String, String> animeEntryMap = new HashMap<String, String>();
+				animeEntryMap.put("animeId", animeId);
+				animeEntryMap.put("recommendedAnimeId", recommendedAnimeId);
+				animeEntryMap.put("numberOfRecommendations",
+						numberOfRecommendations);
+				animeEntryMap.put("recommenderId", recommenderId);
+				animeEntryMap.put("animeTitle", animeTitle);
+				resultMapList.add(animeEntryMap);
+				System.out.println("found entry : " + animeEntryMap);
+				System.out.flush();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return resultMapList;
 	}
 }

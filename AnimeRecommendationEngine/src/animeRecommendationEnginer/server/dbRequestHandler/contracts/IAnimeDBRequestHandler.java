@@ -21,4 +21,11 @@ public interface IAnimeDBRequestHandler {
 
 	public boolean updateAnime(List<Map<String, String>> requestMapList);
 
+	public List<Map<String, String>> getAnime(String animeId);
+
+	public boolean updateAnimeRecommendations(
+			List<Map<String, String>> recommendedAnimeMapList, String animeId);
+
+	public List<Map<String, String>> getRecommendedAnime(String animeId);
+
 }

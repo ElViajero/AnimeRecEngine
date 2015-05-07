@@ -21,7 +21,6 @@ public class RequestExecutor {
 	public String getHTMLSource(String requestURL) {
 		webDriver.get(requestURL);
 		String htmlSouceString = webDriver.getPageSource();
-		System.out.println("HTML Source is :" + htmlSouceString);
 		return htmlSouceString;
 	}
 
