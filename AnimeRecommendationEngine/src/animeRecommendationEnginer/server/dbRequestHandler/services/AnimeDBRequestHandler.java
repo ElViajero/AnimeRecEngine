@@ -341,4 +341,28 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 
 		return resultMapList;
 	}
+
+	@Override
+	public List<Map<String,String>> getSharedAnime(String userId1, String userId2) {
+		String query = "SELECT a.animeId as animeId, a.animeRating as user1Rating, b.animeRating as user2Rating FROM (WatchedAnimeTable as a INNER JOIN WatchedAnimeTable as b) "
+				+ "WHERE a.animeId LIKE b.animeId AND a.userId LIKE \"" + userId1 +"\", AND b.userId LIKE \"" + userId2+ "\"";
+		ResultSet queryResult = iDBRequestExecutor.executeQuery(query);
+		List<Map<String, String>> resultMapList = new ArrayList<Map<String, String>>();
+		try {
+			while (queryResult.next()) {
+				Map<String, String> animeEntryMap = new HashMap<String, String>();
+				animeEntryMap.put("animeId", queryResult
+						.getString("animeId"));
+				animeEntryMap.put("user1Rating", queryResult
+						.getString("user1Rating"));
+				animeEntryMap.put("user2Rating", queryResult
+						.getString("user2Rating"));
+				resultMapList.add(animeEntryMap);
+			}
+		} catch (SQLException e) {
+			System.out.println("something went wrong will fetching anime.");
+			e.printStackTrace();
+		}
+		return resultMapList;
+	}
 }

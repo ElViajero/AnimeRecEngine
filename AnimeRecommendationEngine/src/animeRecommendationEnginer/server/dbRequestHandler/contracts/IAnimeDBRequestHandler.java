@@ -28,4 +28,5 @@ public interface IAnimeDBRequestHandler {
 
 	public List<Map<String, String>> getRecommendedAnime(String animeId);
 
+	public List<Map<String,String>> getSharedAnime(String userId1, String userId2);
 }
