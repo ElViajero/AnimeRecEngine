@@ -345,7 +345,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 	@Override
 	public List<Map<String,String>> getSharedAnime(String userId1, String userId2) {
 		String query = "SELECT a.animeId as animeId, a.animeRating as user1Rating, b.animeRating as user2Rating FROM (WatchedAnimeTable as a INNER JOIN WatchedAnimeTable as b) "
-				+ "WHERE a.animeId LIKE b.animeId AND a.userId LIKE \"" + userId1 +"\", AND b.userId LIKE \"" + userId2+ "\"";
+				+ "WHERE a.animeId LIKE b.animeId AND a.userId LIKE \"" + userId1 +"\", AND b.userId LIKE \"" + userId2+ "\";";
 		ResultSet queryResult = iDBRequestExecutor.executeQuery(query);
 		List<Map<String, String>> resultMapList = new ArrayList<Map<String, String>>();
 		try {
