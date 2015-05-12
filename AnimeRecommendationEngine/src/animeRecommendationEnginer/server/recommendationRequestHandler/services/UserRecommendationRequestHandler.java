@@ -44,12 +44,16 @@ public class UserRecommendationRequestHandler implements
 				userTwoRank.add(results.get(i).get("user2Rating"));
 			}
 		}
+
 		// sort unique scale
 		Collections.sort(userOneRank);
 		Collections.sort(userTwoRank);
+
 		double hits = 0;
 		double cases = 0;
 		int j;
+
+		// OPTIMIZE THIS !!!!!!!
 
 		for (i = 0; i < results.size(); i++) {
 			for (j = i + 1; j < results.size(); j++) {
@@ -67,14 +71,11 @@ public class UserRecommendationRequestHandler implements
 					continue;
 				if ((dif1 > 0 && dif2 > 0) || (dif1 < 0 && dif2 < 0)) {
 					hits++;
-					cases++;
 				} else if (dif1 == 0 && Math.abs(dif2) == 1 || dif2 == 0
 						&& Math.abs(dif1) == 1) {
 					hits += 0.5;
-					cases++;
-				} else {
-					cases++;
 				}
+				cases++;
 			}
 		}
 		return hits / cases;
