@@ -4,11 +4,13 @@
 var getList = function () {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('readystatechange', getListListener);
-    xhr.open("POST", "watchedAnime.json", true);
-    var params = "data=";
+    xhr.open("POST", encodeURI("http://10.188.170.154:8080/AnimeRecommendationEngine/RequestHandler"), true);
+    var params = "";
     var info = {};
-    info["username"] = $("#username1").val();
-    usernameSaver = $("#username1").val();
+    info["requestId"] = "Anime";
+    info["requestType"] = "getWatched";
+    info["userId"] = $("#username1").val();
+    usernameSaver = info["userId"];
     params += JSON.stringify(info);
     xhr.send(params);
     $(this).one("click", getList);
@@ -18,11 +20,13 @@ var getListListener = function (evt) {
     var status = evt.target.status;
     if (evt.target.readyState == 4) {
         if (status == '200') {
+            console.debug(evt.target.responseText);
             var result = JSON.parse(evt.target.responseText);
-            if (result["success"] == true) {
+            console.debug("result");
+            if (result["success"] == "true") {
                 var dropdown = "<br><select id='drop' class='form-control'>";
-                for (var i = 0; i < result["content"].length; i++) {
-                    dropdown += "<option value='" + result["content"][i]["id"] + "'>" + result["content"][i]["name"] + "</option>";
+                for (var i = 0; i < result["contentList"].length; i++) {
+                    dropdown += "<option value='" + result["contentList"][i]["animeId"] + "'>" + result["contentList"][i]["animeTitle"] + "</option>";
                 }
                 dropdown += "</select><input id='getSimilarAnime' type='button' value='Get Similar Anime' class='btn btn-default'>";
                 $("#dropdown-holder").html(dropdown);
@@ -34,7 +38,7 @@ var getListListener = function (evt) {
             }
         }
         else {
-            $("#results-box").html("<h1 style='color:red'>Connection could not be established</h1>")
+            $("#results-box").html("<h1 style='color:red'>Connection could not be established</h1>");
             $("dropdown-holder").html("");
         }
     }
