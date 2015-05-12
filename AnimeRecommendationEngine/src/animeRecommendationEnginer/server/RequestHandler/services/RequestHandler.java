@@ -2,6 +2,7 @@ package animeRecommendationEnginer.server.RequestHandler.services;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.Map;
 
@@ -68,6 +69,7 @@ public class RequestHandler extends HttpServlet {
 			jsonString += line;
 			line = reader.readLine();
 		}
+
 		// parse it into a map.
 		Type stringStringMap = new TypeToken<Map<String, String>>() {
 		}.getType();
@@ -81,8 +83,8 @@ public class RequestHandler extends HttpServlet {
 
 		// return the response
 
-		// Writer w = response.getWriter();
-		// w.append(gson.toJson(result));
-		// w.close();
+		Writer w = response.getWriter();
+		w.append(gson.toJson(result));
+		w.close();
 	}
 }
