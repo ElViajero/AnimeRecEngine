@@ -20,7 +20,7 @@ public class PopulateAnimeRecTableTest {
 		HttpPost post = new HttpPost(
 				"http://localhost:8080/AnimeRecommendationEngine/RequestHandler");
 		post.setEntity(new StringEntity(
-				"{\"requestId\" : \"Anime\", \"requestType\":\"getSimilar\", \"animeId\":\"1\", \"userId\":\"pafk\"}"));
+				"{\"requestId\" : \"Anime\", \"requestType\":\"getSimilar\", \"animeId\":\"918\", \"userId\":\"ElViajero\"}"));
 
 		// "http://myanimelist.net/animelist/ElViajero");
 		HttpResponse response = client.execute(post);
