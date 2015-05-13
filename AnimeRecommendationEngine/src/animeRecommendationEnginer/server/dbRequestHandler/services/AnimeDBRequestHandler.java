@@ -25,6 +25,9 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 	@Inject
 	IDBRequestExecutor iDBRequestExecutor;
 
+	/**
+	 * @author tejasvamsingh
+	 */
 	@Override
 	public List<Map<String, String>> getWatchedAnime(String userId) {
 
@@ -63,6 +66,9 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		return resultMapList;
 	}
 
+	/**
+	 * @author tejasvamsingh
+	 */
 	@Override
 	public boolean updateWatchedAnime(List<Map<String, String>> requestMapList,
 			String userId) {
@@ -127,6 +133,11 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 
 	}
 
+	/**
+	 * @author tejasvamsingh
+	 * @param animeEntry
+	 * @return
+	 */
 	private String extractAnimeId(Map<String, String> animeEntry) {
 		String animeId = "";
 		if (!animeEntry.containsKey("animeId")) {
@@ -141,6 +152,10 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		return animeId;
 	}
 
+	/**
+	 * 
+	 * @author tejasvamsingh
+	 */
 	@Override
 	public boolean updateAnime(List<Map<String, String>> requestMapList) {
 
@@ -204,6 +219,9 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		return true;
 	}
 
+	/**
+	 * @author tejasvamsingh
+	 */
 	@Override
 	public List<Map<String, String>> getAnime(String animeId) {
 
@@ -250,6 +268,9 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		return resultMapList;
 	}
 
+	/**
+	 * @author tejasvamsingh
+	 */
 	@Override
 	public boolean updateAnimeRecommendations(
 			List<Map<String, String>> recommendedAnimeMapList, String animeId) {
@@ -294,6 +315,9 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		return true;
 	}
 
+	/**
+	 * @author tejasvamsingh
+	 */
 	@Override
 	public List<Map<String, String>> getRecommendedAnime(String animeId) {
 
@@ -343,25 +367,50 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		return resultMapList;
 	}
 
+	/**
+	 * @author tejasvamsingh
+	 */
 	@Override
-	public List<Map<String,String>> getSharedAnime(String userId1, String userId2) {
-		String query = "SELECT a.animeId as animeId, a.animeRating as user1Rating, b.animeRating as user2Rating FROM (WatchedAnimeTable as a INNER JOIN WatchedAnimeTable as b) "
-				+ "WHERE a.animeId LIKE b.animeId AND a.userId LIKE \"" + userId1 +"\", AND b.userId LIKE \"" + userId2+ "\";";
+	public List<Map<String, String>> getSharedAnime(String userId1,
+			String userId2) {
+
+		// formulate the query
+		String query = "SELECT A.animeId AS animeId, A.animeRating AS userOneRating, B.animeRating AS userTwoRating  FROM "
+				+ "(WatchedAnimeTable as A JOIN WatchedAnimeTable as B ON A.animeId=B.animeId) "
+				+ "WHERE A.userId=\""
+				+ userId1
+				+ "\""
+				+ " AND B.userId=\""
+				+ userId2 + "\";";
+
+		// execute the query
 		ResultSet queryResult = iDBRequestExecutor.executeQuery(query);
+
 		List<Map<String, String>> resultMapList = new ArrayList<Map<String, String>>();
+		Map<String, String> statusMap = new HashMap<String, String>();
+
+		statusMap.put("Status", "Failed");
+		statusMap.put("Reason", "No shared anime found.");
+
+		resultMapList.add(statusMap);
+
+		// fetch the results
 		try {
 			while (queryResult.next()) {
+
+				statusMap.put("Status", "Success");
+
+				// populate the fields and add to a map
 				Map<String, String> animeEntryMap = new HashMap<String, String>();
-				animeEntryMap.put("animeId", queryResult
-						.getString("animeId"));
-				animeEntryMap.put("user1Rating", queryResult
-						.getString("user1Rating"));
-				animeEntryMap.put("user2Rating", queryResult
-						.getString("user2Rating"));
+				animeEntryMap.put("animeId", queryResult.getString("animeId"));
+				animeEntryMap.put("userOneRating",
+						queryResult.getString("userOneRating"));
+				animeEntryMap.put("userTwoRating",
+						queryResult.getString("userTwoRating"));
 				resultMapList.add(animeEntryMap);
 			}
 		} catch (SQLException e) {
-			System.out.println("something went wrong will fetching anime.");
+			System.out.println("something went wrong while fetching anime.");
 			e.printStackTrace();
 		}
 		return resultMapList;

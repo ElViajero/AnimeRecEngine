@@ -13,6 +13,7 @@ import animeRecommendationEnginer.server.recommendationRequestHandler.contracts.
 
 /**
  * 
+ * @author laurencegoldinger
  * @author tejasvamsingh
  * 
  *
@@ -24,60 +25,92 @@ public class UserRecommendationRequestHandler implements
 	@Inject
 	IAnimeDBRequestHandler iAnimeDBRequestHandler;
 
+	/**
+	 * 
+	 * @author laurencegoldinger
+	 * @author tejasvamsingh
+	 * 
+	 */
 	@Override
 	public double getUserSimilarity(String userOneId, String userTwoId) {
 
+		// get the shared anime.
 		List<Map<String, String>> results = iAnimeDBRequestHandler
 				.getSharedAnime(userOneId, userTwoId);
 
-		// TODO change the function to perform the ranking over all scores
-		// rather than the scores for shared anime
-		int i;
-		Map<String, String> x;
-		List<String> userOneRank = new ArrayList<String>();
-		List<String> userTwoRank = new ArrayList<String>();
-		for (i = 0; i < results.size(); i++) {
-			if (!(userOneRank.contains(results.get(i).get("user1Rating")))) {
-				userOneRank.add(results.get(i).get("user1Rating"));
-			}
-			if (!(userTwoRank.contains(results.get(i).get("user2Rating")))) {
-				userTwoRank.add(results.get(i).get("user2Rating"));
-			}
+		System.out.println("results is : " + results);
+
+		// It's possible that there are no shared anime.
+		if (results.get(0).get("Status").equals("Failed"))
+			return 0;
+
+		// remove the status map
+		results.remove(0);
+
+		List<String> userOneRankList = new ArrayList<String>();
+		List<String> userTwoRankList = new ArrayList<String>();
+
+		// add unique ratings to the rank lists.
+		for (Map<String, String> sharedAnimeMap : results) {
+
+			String userOneRatingString = sharedAnimeMap.get("userOneRating");
+			String userTwoRatingString = sharedAnimeMap.get("userTwoRating");
+			// If the anime is unrated then ignore it
+
+			if (userOneRatingString.equals("-")
+					|| userTwoRatingString.equals("-"))
+				continue;
+
+			if (!userOneRankList.contains(sharedAnimeMap.get("userOneRating")))
+				userOneRankList.add(sharedAnimeMap.get("userOneRating"));
+
+			if (!(userTwoRankList.contains(sharedAnimeMap.get("userTwoRating"))))
+				userTwoRankList.add(sharedAnimeMap.get("userTwoRating"));
 		}
 
-		// sort unique scale
-		Collections.sort(userOneRank);
-		Collections.sort(userTwoRank);
+		System.out.println("userOneRankList is : " + userOneRankList);
+		System.out.println("userTwoRankList is : " + userTwoRankList);
+
+		// check here if we actually have some ratings
+		if (userOneRankList.isEmpty() || userTwoRankList.isEmpty())
+			return 0;
+
+		// sort the rank lists
+		Collections.sort(userOneRankList);
+		Collections.sort(userTwoRankList);
 
 		double hits = 0;
 		double cases = 0;
-		int j;
 
-		// OPTIMIZE THIS !!!!!!!
+		for (int i = 0; i < results.size(); i++) {
+			for (int j = i + 1; j < results.size(); j++) {
 
-		for (i = 0; i < results.size(); i++) {
-			for (j = i + 1; j < results.size(); j++) {
-				int dif1 = userOneRank.indexOf(results.get(i)
-						.get("user1Rating"))
-						- userOneRank
-								.indexOf(results.get(j).get("user1Rating"));
-				int dif2 = userTwoRank.indexOf(results.get(i)
-						.get("user2Rating"))
-						- userTwoRank
-								.indexOf(results.get(j).get("user2Rating"));
-				// TODO if both of them have given diff zero, then
-				// skip.
-				if (dif1 == 0 && dif2 == 0)
+				int userOnerankingDifference = userOneRankList.indexOf(results
+						.get(i).get("userOneRating"))
+						- userOneRankList.indexOf(results.get(j).get(
+								"userOneRating"));
+
+				int userTwoRankingDifference = userTwoRankList.indexOf(results
+						.get(i).get("userTwoRating"))
+						- userTwoRankList.indexOf(results.get(j).get(
+								"userTwoRating"));
+
+				if (userOnerankingDifference == 0
+						&& userTwoRankingDifference == 0)
 					continue;
-				if ((dif1 > 0 && dif2 > 0) || (dif1 < 0 && dif2 < 0)) {
+				if ((userOnerankingDifference > 0 && userTwoRankingDifference > 0)
+						|| (userOnerankingDifference < 0 && userTwoRankingDifference < 0))
 					hits++;
-				} else if (dif1 == 0 && Math.abs(dif2) == 1 || dif2 == 0
-						&& Math.abs(dif1) == 1) {
+				else if (userOnerankingDifference == 0
+						&& Math.abs(userTwoRankingDifference) == 1
+						|| userTwoRankingDifference == 0
+						&& Math.abs(userOnerankingDifference) == 1)
 					hits += 0.5;
-				}
+
 				cases++;
 			}
 		}
+
 		return hits / cases;
 	}
 }

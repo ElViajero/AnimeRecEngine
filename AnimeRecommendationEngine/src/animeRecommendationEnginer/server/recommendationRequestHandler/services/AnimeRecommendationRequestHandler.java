@@ -43,6 +43,9 @@ public class AnimeRecommendationRequestHandler implements
 	@Inject
 	IUserRecommendationRequestHandler iUserRecommendationRequestHandler;
 
+	/**
+	 * @author tejasvamsingh
+	 */
 	@Override
 	public RecommendationResponseProperties getSimilar(
 			Map<String, String> requestMap) {
@@ -90,6 +93,13 @@ public class AnimeRecommendationRequestHandler implements
 		return response;
 	}
 
+	/**
+	 * 
+	 * 
+	 * @author tejasvamsingh
+	 * @param requestMap
+	 * @return
+	 */
 	private RecommendationResponseProperties getRecommendedAnime(
 			Map<String, String> requestMap) {
 
@@ -140,6 +150,8 @@ public class AnimeRecommendationRequestHandler implements
 
 	/**
 	 * This method returns a list of watched anime for a given user.
+	 * 
+	 * @author tejasvamsingh
 	 */
 	@SuppressWarnings({ "unused", "unchecked" })
 	@Override
@@ -186,6 +198,8 @@ public class AnimeRecommendationRequestHandler implements
 	/**
 	 * This method fetches from the website if results are not available in the
 	 * DB.
+	 * 
+	 * @author tejasvamsingh
 	 * 
 	 * @return
 	 */

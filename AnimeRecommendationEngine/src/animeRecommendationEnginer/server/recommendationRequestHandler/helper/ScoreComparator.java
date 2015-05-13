@@ -16,7 +16,7 @@ public class ScoreComparator implements Comparator<Map<String, String>> {
 
 		Double scoreOne = Double.parseDouble(o1.get("score"));
 		Double scoreTwo = Double.parseDouble(o2.get("score"));
-		return scoreOne.compareTo(scoreTwo);
+		return -1 * scoreOne.compareTo(scoreTwo);
 
 	}
 

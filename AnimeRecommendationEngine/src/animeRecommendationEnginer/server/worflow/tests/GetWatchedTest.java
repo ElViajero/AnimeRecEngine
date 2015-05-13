@@ -38,7 +38,7 @@ public class GetWatchedTest {
 		HttpPost post = new HttpPost(
 				"http://localhost:8080/AnimeRecommendationEngine/RequestHandler");
 		post.setEntity(new StringEntity(
-				"{\"requestId\" : \"Anime\", \"requestType\":\"getWatched\", \"userId\":\"pafk\"}"));
+				"{\"requestId\" : \"Anime\", \"requestType\":\"getWatched\", \"userId\":\"ElViajero\"}"));
 		// "http://myanimelist.net/animelist/ElViajero");
 		HttpResponse response = client.execute(post);
 		/*
