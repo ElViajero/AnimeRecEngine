@@ -1,5 +1,9 @@
 package animeRecommendationEnginer.server.dbRequestHandler.services;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,12 +26,74 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 
 	@Inject
 	IDBRequestExecutor iDBRequestExecutor;
-
+/**
+ * finds the mean and the standard deviation of the animes watched by the user.
+ * @author sarahwatanabe
+ * 
+ */
 	@Override
 	public Map<String, Map<String, Double>> getUserAnimeStats(
 			List<String> userIdList) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+		//parameter is a list of userIdList
+		
+		
+		Map<String,Map<String,Double>> returnMap = new HashMap<String,Map<String,Double>>();
+		ArrayList<Integer> ratingsArr = new ArrayList<Integer>();
+		
+		
+		for (int  i=0; i<userIdList.size(); i--){
+			
+			// formulate the query
+			String query = "SELECT * FROM WatchedAnimeTable WHERE userId="
+								+ "\"" + userIdList.get(i) + "\"" + ";";
+			//execute query 
+			ResultSet queryResult = iDBRequestExecutor.executeQuery(query);
+			
+			//status is failed currently
+			returnMap.put("Status", new HashMap<String, Double>());
+			returnMap.get("Status").put("Failed", 0.0);
+			
+			//variables
+			double mean=0;
+			double sum=0; 
+			int count =0;
+			double std_dev_sum =0;
+			
+			try {
+				//get statistic of all anime titles
+				while (queryResult.next()) {
+					
+					//status map is now successful
+					returnMap.get("Status").put("Success", 0.0);
 
+					String animeRating = queryResult.getString("animeRating");
+					int rating = Integer.parseInt(animeRating);
+					sum +=rating;
+					ratingsArr.add(rating);
+					count++;
+				}
+				//find the mean
+				mean = sum/count;
+				for (int j =0; j< count; j++){
+					double diff = ratingsArr.get(j)- mean;
+					diff = diff * diff;
+					std_dev_sum +=diff;
+				}
+				double std_dev = std_dev_sum/count;
+				//adding to hashmap
+				returnMap.put(userIdList.get(i), new HashMap<String, Double>());
+				returnMap.get(userIdList.get(i)).put("mean",mean);
+				returnMap.get(userIdList.get(i)).put("std dev",std_dev);
+				ratingsArr.clear(); 
+					
+			} catch (SQLException e) {
+				return returnMap;
+			}
+		}
+			System.out.println("Fetched from DB : " + returnMap);
+			return returnMap;
+	}
 }
+		
+
+

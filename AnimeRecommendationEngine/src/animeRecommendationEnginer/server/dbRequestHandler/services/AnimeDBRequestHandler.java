@@ -40,6 +40,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		statusMap.put("Reason", "UserId not found.");
 		List<Map<String, String>> resultMapList = new ArrayList<Map<String, String>>();
 		resultMapList.add(statusMap);
+		
 		try {
 
 			while (queryResult.next()) {

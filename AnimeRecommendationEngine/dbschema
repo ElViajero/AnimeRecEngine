@@ -1,0 +1,10 @@
+DROP DATABASE AnimeRecEngine;
+
+CREATE DATABASE AnimeRecEngine;
+USE AnimeRecEngine;
+
+CREATE TABLE WatchedAnimeTable (userId varchar(20),animeId varchar(20), animeTitle varchar(40), animeRating varchar (3));
+ALTER TABLE WatchedAnimeTable ADD PRIMARY KEY (userId,animeId);
+
+CREATE TABLE AnimeTable (animeId varchar(20), animeTitle varchar(1000), animeRank varchar(20), animeLink varchar(100), animeImage varchar(100), animeType varchar(100));
+ALTER TABLE AnimeTable ADD PRIMARY KEY (animeId);
