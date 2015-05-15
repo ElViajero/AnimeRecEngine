@@ -82,8 +82,8 @@ public class RequestHandler extends HttpServlet {
 
 		// return the response
 
-		// Writer w = response.getWriter();
-		// w.append(gson.toJson(result));
-		// w.close();
+		Wri22ter w = response.getWriter();
+		w.append(gson.toJson(result));
+		w.close();
 	}
 }

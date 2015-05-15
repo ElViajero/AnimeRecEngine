@@ -254,7 +254,7 @@ public class AnimeRecommendationRequestHandler implements
 		double userMean = weightedInfoMap.get(userId).get("mean");
 		double userDev = weightedInfoMap.get(userId).get("stdDev");
 
-		for (Map<String, String> rec : recList) {
+		for (Map<String, String> rec : recList) {1
 			if (!predictedScoreInfoMap.containsKey(rec.get("animeId"))) {
 				Map<String, Double> temp = new HashMap<String, Double>();
 				temp.put("weight", 0.0);
