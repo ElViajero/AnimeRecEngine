@@ -65,6 +65,7 @@
 // CALCULAT THE NEW SCORE
 
 //			double newScore = userMean - distance * userDev;
+//      double newScore = Math.min(10, Math.max(1, newScore);
 //			double insertScore = newScore * Math.abs(tempSim) + predictedScoreInfo.get(rec.get("animeId")).get("scoreSum");
 
 // PUT THE NEW SCORES AND WEIGHT IN.
