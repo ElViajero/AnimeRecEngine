@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import animeRecommendationEnginer.server.dbRequestHandler.contracts.IAnimeDBRequestHandler;
+import animeRecommendationEnginer.server.dbRequestHandler.contracts.IUserDBRequestHandler;
 import animeRecommendationEnginer.server.recommendationRequestHandler.contracts.IAnimeRecommendationRequestHandler;
 import animeRecommendationEnginer.server.recommendationRequestHandler.contracts.IUserRecommendationRequestHandler;
 import animeRecommendationEnginer.server.recommendationRequestHandler.helper.RequestExecutor;
@@ -42,7 +43,10 @@ public class AnimeRecommendationRequestHandler implements
 	IAnimeDBRequestHandler iAnimeDBRequestHandler;
 	@Inject
 	IUserRecommendationRequestHandler iUserRecommendationRequestHandler;
-
+	
+	@Inject
+	IUserDBRequestHandler iUserDBRequestHandler;
+	
 	/**
 	 * @author tejasvamsingh
 	 */
@@ -238,17 +242,16 @@ public class AnimeRecommendationRequestHandler implements
 		// getRatedAnimeFromSimilarUsers
 
 		// getting all the ratings that fulfill the 5 shared anime.
-		List<Map<String, String>> recList = null; // getSimilarities(userId);
+		List<Map<String, String>> recList =  iUserDBRequestHandler.getRatedAnimeFromSimilarUsers(userId);
 
 		Set<String> userIds = new HashSet<String>();
-
 		// get a set of users
 		for (Map<String, String> rec : recList)
 			userIds.add(rec.get("userId"));
 
 		// Get the mean and std. dev.
 
-		Map<String, Map<String, Double>> weightedInfoMap = null; // getStats(userIds);
+		Map<String, Map<String, Double>> weightedInfoMap = iUserDBRequestHandler.getUserAnimeStats(userIds);
 
 		Map<String, Map<String, Double>> predictedScoreInfoMap = new HashMap<String, Map<String, Double>>();
 		double userMean = weightedInfoMap.get(userId).get("mean");

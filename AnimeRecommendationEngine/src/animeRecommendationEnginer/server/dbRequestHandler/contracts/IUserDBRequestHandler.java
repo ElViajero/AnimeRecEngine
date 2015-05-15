@@ -2,6 +2,7 @@ package animeRecommendationEnginer.server.dbRequestHandler.contracts;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ejb.Local;
 
@@ -17,12 +18,11 @@ import javax.ejb.Local;
 public interface IUserDBRequestHandler {
 
 	public Map<String, Map<String, Double>> getUserAnimeStats(
-			List<String> userIdList);
+			Set<String> userIdList);
 
 	public boolean updateUserSimilarity(String userIdOne, String userIdTwo,
 			double score);
 	
-	public List<Map<String, String>> getRatedAnimeFromSimilarUsers(String userId,
-			double score);
+	public List<Map<String, String>> getRatedAnimeFromSimilarUsers(String userId);
 
 }
