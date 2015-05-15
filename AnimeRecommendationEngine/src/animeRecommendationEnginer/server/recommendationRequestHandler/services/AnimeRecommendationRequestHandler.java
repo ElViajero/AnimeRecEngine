@@ -43,10 +43,10 @@ public class AnimeRecommendationRequestHandler implements
 	IAnimeDBRequestHandler iAnimeDBRequestHandler;
 	@Inject
 	IUserRecommendationRequestHandler iUserRecommendationRequestHandler;
-	
+
 	@Inject
 	IUserDBRequestHandler iUserDBRequestHandler;
-	
+
 	/**
 	 * @author tejasvamsingh
 	 */
@@ -238,42 +238,70 @@ public class AnimeRecommendationRequestHandler implements
 
 		String userId = requestMap.get("userId");
 		RecommendationResponseProperties response = new RecommendationResponseProperties();
+		response.setErrorMessage("No rated anime from similar users found.");
 
 		// getRatedAnimeFromSimilarUsers
 
 		// getting all the ratings that fulfill the 5 shared anime.
-		List<Map<String, String>> recList =  iUserDBRequestHandler.getRatedAnimeFromSimilarUsers(userId);
+		List<Map<String, String>> recList = iUserDBRequestHandler
+				.getRatedAnimeFromSimilarUsers(userId);
 
 		Set<String> userIds = new HashSet<String>();
+		if (recList.get(0).get("Status").equals("Failed"))
+			return response;
+
+		recList.remove(0);
 		// get a set of users
 		for (Map<String, String> rec : recList)
 			userIds.add(rec.get("userId"));
+		userIds.add(userId);
 
 		// Get the mean and std. dev.
 
-		Map<String, Map<String, Double>> weightedInfoMap = iUserDBRequestHandler.getUserAnimeStats(userIds);
+		Map<String, Map<String, Double>> weightedInfoMap = iUserDBRequestHandler
+				.getUserAnimeStats(userIds);
 
-		Map<String, Map<String, Double>> predictedScoreInfoMap = new HashMap<String, Map<String, Double>>();
-		double userMean = weightedInfoMap.get(userId).get("mean");
-		double userDev = weightedInfoMap.get(userId).get("stdDev");
+		Map<String, Map<String, String>> predictedScoreInfoMap = new HashMap<String, Map<String, String>>();
 
-		for (Map<String, String> rec : recList) {1
+		double userMean = 0;
+		double userDev = 0;
+
+		try {
+			userMean = weightedInfoMap.get(userId).get("mean");
+			userDev = weightedInfoMap.get(userId).get("stdDev");
+		} catch (NullPointerException e) {
+
+			System.out.println("The weightedInfoMap is : " + weightedInfoMap);
+		}
+
+		for (Map<String, String> rec : recList) {
+			String animeId = rec.get("animeId");
+
 			if (!predictedScoreInfoMap.containsKey(rec.get("animeId"))) {
-				Map<String, Double> temp = new HashMap<String, Double>();
-				temp.put("weight", 0.0);
-				temp.put("scoreSum", 0.0);
-
-				// TODO other information such as animeTitle, animeLink etc.
-				predictedScoreInfoMap.put(rec.get("animeId"), temp);
+				Map<String, String> currentAnimeInfoMap = new HashMap<String, String>();
+				currentAnimeInfoMap.put("weight", "0.0");
+				currentAnimeInfoMap.put("scoreSum", "0.0");
+				predictedScoreInfoMap.put(animeId, currentAnimeInfoMap);
 			}
 
+			double mean = 0;
+			double stdDev = 0;
 			// Get the information of the user recommending anime
+			try {
+				mean = weightedInfoMap.get(rec.get("userId")).get("mean");
+				stdDev = weightedInfoMap.get(rec.get("userId")).get("stdDev");
+			} catch (NullPointerException e) {
+				System.out.println("The userId is : " + rec.get("userId"));
+				System.out.println("The mean is : " + mean);
+				System.out.println("The stdDev is : " + stdDev);
+				System.out.println("The rec is : " + rec);
+				System.out.println("The weightedInfoMap is : "
+						+ weightedInfoMap);
+				System.out.flush();
 
-			double mean = weightedInfoMap.get(rec.get("userId")).get("mean");
-			double stdDev = weightedInfoMap.get(rec.get("userId"))
-					.get("stdDev");
+			}
 
-			double tempSim = new Double(rec.get("similarity")) - 0.5;
+			double tempSim = new Double(rec.get("similarityScore")) - 0.5;
 			double distance = (mean - new Double(rec.get("animeRating")))
 					/ stdDev * Math.signum(tempSim);
 
@@ -282,37 +310,51 @@ public class AnimeRecommendationRequestHandler implements
 			newScore = Math.min(10, Math.max(1, newScore));
 			double insertScore = newScore
 					* Math.abs(tempSim)
-					+ predictedScoreInfoMap.get(rec.get("animeId")).get(
-							"scoreSum");
+					+ Double.parseDouble(predictedScoreInfoMap.get(
+							rec.get("animeId")).get("scoreSum"));
 
 			// put the new scores and weight in
 			predictedScoreInfoMap.get(rec.get("animeId")).put("scoreSum",
-					insertScore);
-			double insertWeight = Math.abs(tempSim)
-					+ predictedScoreInfoMap.get(rec.get("animeId")).get(
-							"weight");
-			predictedScoreInfoMap.get(rec.get("animeId")).put("weight",
-					insertWeight);
+					String.valueOf(insertScore));
 
+			double insertWeight = Math.abs(tempSim)
+					+ Double.parseDouble(predictedScoreInfoMap.get(
+							rec.get("animeId")).get("weight"));
+			predictedScoreInfoMap.get(rec.get("animeId")).put("weight",
+					String.valueOf(insertWeight));
+			if (insertWeight < 1)
+				continue;
 			// calculate a score and add it to the map
 			double score = insertScore / insertWeight;
-			predictedScoreInfoMap.get("animeId").put("score", score);
+			score = Math.min(score, 10);
+			try {
+				predictedScoreInfoMap.get(animeId).put("score",
+						String.valueOf(score));
+
+			} catch (NullPointerException e) {
+				System.out.println("The predictedScoreInfoMap is : "
+						+ predictedScoreInfoMap);
+			}
 		}
 
 		// create a content map list to add to
-		// our reponse.
+		// our response.
 		List<Map<String, String>> contentMapList = new ArrayList<Map<String, String>>();
 
 		for (String key : predictedScoreInfoMap.keySet()) {
 			Map<String, String> returnMap = new HashMap<String, String>();
-			for (Map.Entry<String, Double> entry : predictedScoreInfoMap.get(
+			for (Map.Entry<String, String> entry : predictedScoreInfoMap.get(
 					key).entrySet()) {
 				String keyString = entry.getKey();
 				String valString = String.valueOf(entry.getValue());
 				returnMap.put(keyString, valString);
 			}
-
+			List<Map<String, String>> animeInfoMapList = iAnimeDBRequestHandler
+					.getAnime(key);
+			if (animeInfoMapList.size() < 2)
+				continue;
 			returnMap.put("animeId", key);
+			returnMap.putAll(iAnimeDBRequestHandler.getAnime(key).get(1));
 			contentMapList.add(returnMap);
 		}
 
@@ -320,6 +362,10 @@ public class AnimeRecommendationRequestHandler implements
 		Collections.sort(contentMapList, new ScoreComparator());
 		// add it to the response
 		response.setContentList(contentMapList);
+
+		System.out.println("contentMapList is : " + contentMapList);
+		System.out.flush();
+		response.setSuccess("true");
 
 		return response;
 	}

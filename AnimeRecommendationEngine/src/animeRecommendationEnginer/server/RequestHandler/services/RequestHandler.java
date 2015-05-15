@@ -2,6 +2,7 @@ package animeRecommendationEnginer.server.RequestHandler.services;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.Map;
 
@@ -80,9 +81,11 @@ public class RequestHandler extends HttpServlet {
 		RecommendationResponseProperties result = iRequestDispatcher
 				.dispatchRequest(requestMap);
 
+		System.out.println(gson.toJson(result));
+
 		// return the response
 
-		Wri22ter w = response.getWriter();
+		Writer w = response.getWriter();
 		w.append(gson.toJson(result));
 		w.close();
 	}

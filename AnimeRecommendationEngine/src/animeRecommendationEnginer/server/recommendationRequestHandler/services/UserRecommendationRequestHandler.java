@@ -2,15 +2,16 @@ package animeRecommendationEnginer.server.recommendationRequestHandler.services;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ejb.Stateless;
 import javax.inject.Inject;
 
 import animeRecommendationEnginer.server.dbRequestHandler.contracts.IAnimeDBRequestHandler;
 import animeRecommendationEnginer.server.dbRequestHandler.contracts.IUserDBRequestHandler;
 import animeRecommendationEnginer.server.recommendationRequestHandler.contracts.IUserRecommendationRequestHandler;
+import animeRecommendationEnginer.server.recommendationRequestHandler.properties.RecommendationResponseProperties;
 
 /**
  * 
@@ -19,7 +20,7 @@ import animeRecommendationEnginer.server.recommendationRequestHandler.contracts.
  * 
  *
  */
-@Stateless
+
 public class UserRecommendationRequestHandler implements
 		IUserRecommendationRequestHandler {
 
@@ -88,7 +89,7 @@ public class UserRecommendationRequestHandler implements
 		for (int i = 0; i < results.size(); i++) {
 			for (int j = i + 1; j < results.size(); j++) {
 
-				int userOnerankingDifference = userOneRankList.indexOf(results
+				int userOneRankingDifference = userOneRankList.indexOf(results
 						.get(i).get("userOneRating"))
 						- userOneRankList.indexOf(results.get(j).get(
 								"userOneRating"));
@@ -98,20 +99,15 @@ public class UserRecommendationRequestHandler implements
 						- userTwoRankList.indexOf(results.get(j).get(
 								"userTwoRating"));
 
-				if (userOnerankingDifference == 0
-						&& userTwoRankingDifference == 0
-						/*|| (userOnerankingDifference == 0 && 
-						Math.abs(userOnerankingDifference) < 1)|| (userTworankingDifference == 0 && Math.abs(userOnerankingDifference) < 1) */)
-					continue;
-				if ((userOnerankingDifference > 0 && userTwoRankingDifference > 0)
-						|| (userOnerankingDifference < 0 && userTwoRankingDifference < 0))
-					hits++;
-				else if (userOnerankingDifference == 0
-						&& Math.abs(userTwoRankingDifference) == 1
-						|| userTwoRankingDifference == 0
-						&& Math.abs(userOnerankingDifference) == 1)
-					hits += 0.5;
+				if ((userOneRankingDifference == 0 && Math
+						.abs(userOneRankingDifference) <= 1)
+						|| (userTwoRankingDifference == 0 && Math
+								.abs(userOneRankingDifference) <= 1))
 
+					continue;
+				if ((userOneRankingDifference > 0 && userTwoRankingDifference > 0)
+						|| (userOneRankingDifference < 0 && userTwoRankingDifference < 0))
+					hits++;
 				cases++;
 			}
 		}
@@ -122,5 +118,42 @@ public class UserRecommendationRequestHandler implements
 		iUserDBRequestHandler.updateUserSimilarity(userOneId, userTwoId, score);
 
 		return hits / cases;
+	}
+
+	@Override
+	public RecommendationResponseProperties getSimilarUsers(
+			Map<String, String> requestMap) {
+
+		System.out.println("inside get similar users");
+		System.out.flush();
+		RecommendationResponseProperties response = new RecommendationResponseProperties();
+		response.setErrorMessage("No similar users found.");
+		List<Map<String, String>> contentList = new ArrayList<Map<String, String>>();
+		String myUserId = requestMap.get("userId");
+		// TODO Get users who share at least 5 rated anime with you
+		List<String> userIdList = iUserDBRequestHandler
+				.getSimilarUsers(myUserId);
+
+		// TODO For each user
+		for (String userId : userIdList) {
+			// TODO estimate similarity
+			double userSimilarityScore = getUserSimilarity(userId, myUserId);
+			// TODO persist the user similarity
+			iUserDBRequestHandler.updateUserSimilarity(userId, myUserId,
+					userSimilarityScore);
+			iUserDBRequestHandler.updateUserSimilarity(myUserId, userId,
+					userSimilarityScore);
+			Map<String, String> currentUserSimilarityMap = new HashMap<String, String>();
+			currentUserSimilarityMap.put("myUserId", myUserId);
+			currentUserSimilarityMap.put("userId", userId);
+			currentUserSimilarityMap.put("score",
+					String.valueOf(userSimilarityScore));
+
+			contentList.add(currentUserSimilarityMap);
+
+		}
+		response.setContentList(contentList);
+		response.setSuccess("true");
+		return response;
 	}
 }

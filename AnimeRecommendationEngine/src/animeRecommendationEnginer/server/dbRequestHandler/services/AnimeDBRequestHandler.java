@@ -43,7 +43,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		statusMap.put("Reason", "UserId not found.");
 		List<Map<String, String>> resultMapList = new ArrayList<Map<String, String>>();
 		resultMapList.add(statusMap);
-		
+
 		try {
 
 			while (queryResult.next()) {
@@ -234,7 +234,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		// get the results
 		Map<String, String> statusMap = new HashMap<String, String>();
 		statusMap.put("Status", "Failed");
-		statusMap.put("Reason", "UserId not found.");
+		statusMap.put("Reason", "AnimeId not found.");
 		List<Map<String, String>> resultMapList = new ArrayList<Map<String, String>>();
 		resultMapList.add(statusMap);
 
