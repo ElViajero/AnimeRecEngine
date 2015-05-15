@@ -4,7 +4,7 @@
 var getList = function () {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('readystatechange', getListListener);
-    xhr.open("POST", encodeURI("http://10.188.170.154:8080/AnimeRecommendationEngine/RequestHandler"), true);
+    xhr.open("POST", encodeURI("/AnimeRecommendationEngine/RequestHandler"), true);
     var params = "";
     var info = {};
     info["requestId"] = "Anime";
