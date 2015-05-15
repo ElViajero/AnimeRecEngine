@@ -73,13 +73,13 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 					count++;
 				}
 				//find the mean
-				mean = sum/count;
+				mean = (double)sum/(double)count;
 				for (int j =0; j< count; j++){
 					double diff = ratingsArr.get(j)- mean;
 					diff = diff * diff;
 					std_dev_sum +=diff;
 				}
-				double std_dev = std_dev_sum/count;
+				double std_dev = std_dev_sum/(double)count;
 				//adding to hashmap
 				returnMap.put(userIdList.get(i), new HashMap<String, Double>());
 				returnMap.get(userIdList.get(i)).put("mean",mean);
