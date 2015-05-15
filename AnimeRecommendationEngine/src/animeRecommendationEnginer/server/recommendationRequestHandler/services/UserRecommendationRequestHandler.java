@@ -96,7 +96,9 @@ public class UserRecommendationRequestHandler implements
 								"userTwoRating"));
 
 				if (userOnerankingDifference == 0
-						&& userTwoRankingDifference == 0)
+						&& userTwoRankingDifference == 0
+						/*|| (userOnerankingDifference == 0 && 
+						Math.abs(userOnerankingDifference) < 1)|| (userTworankingDifference == 0 && Math.abs(userOnerankingDifference) < 1) */)
 					continue;
 				if ((userOnerankingDifference > 0 && userTwoRankingDifference > 0)
 						|| (userOnerankingDifference < 0 && userTwoRankingDifference < 0))
