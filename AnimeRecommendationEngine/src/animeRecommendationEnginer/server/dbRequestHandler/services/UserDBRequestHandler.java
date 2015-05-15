@@ -127,4 +127,61 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 
 		return true;
 	}
+
+	@Override
+	/* This method gets the rated anime from similar users.
+	 * 
+	 */
+	public List<Map<String, String>> getRatedAnimeFromSimilarUsers(
+			String userId, double score) {
+		
+		String query = "SELECT a.animeId as animeId, a.animeTitle as animeTitle, a.animeRating as animeRating, d.similarityScore as similarityScore FROM "
+				+ "WatchedAnimeTable as a "
+				+ "INNER JOIN " + 
+				"(SELECT c.userId as userId FROM WatchedAnimeTable as b INNER JOIN WatchedAnimeTable as c "
+				+ "ON(b.UserId LIKE \""+ userId +"\" AND b.AnimeId LIKE c.AnimeId AND b.AnimeRating NOT LIKE \"-\" AND c.AnimeRating NOT LIKE \"-\") "
+				+ "GROUP BY c.userId HAVING COUNT(c.animeId) > 5 ) as e "
+				+ "ON (a.userId LIKE e.userId) " 
+				+ "INNER JOIN usersimilaritytable as d " 
+				+ "ON (d.userOneId LIKE "+ userId +" AND d.userTwoId LIKE a.userId) " 
+				+ "WHERE a.animeId NOT IN " 
+				+ "(SELECT animeId FROM WatchedAnimeTable WHERE userId =\""+ userId + "\") "
+				+ "and a.animeRating NOT LIKE \"-\"";
+		
+		// execute query
+		ResultSet queryResult = iDBRequestExecutor.executeQuery(query);
+		
+		List<Map<String, String>> returnList = new ArrayList<Map<String, String>>() ; 
+		
+		// status is failed currently
+		Map<String,String> status = new HashMap<String, String>();
+		status.put("Status", "Failed");
+		returnList.add(status);
+
+		try {
+				// get statistic of all anime titles
+				while (queryResult.next()) {
+
+					// status map is now successful
+					status.put("Status", "Success");
+					
+					//Making a anime entry map
+					Map<String, String> animeEntryMap = new HashMap<String, String>();
+					String animeId = queryResult.getString("animeId");
+					String animeTitle = queryResult.getString("animeTitle");
+					String animeRating = queryResult.getString("animeRating");
+					String similarityScore = queryResult.getString("similarityScore");
+					animeEntryMap.put("animeId", animeId);
+					animeEntryMap.put("animeTitle", animeTitle);
+					animeEntryMap.put("animeRating", animeRating);
+					animeEntryMap.put("similarityScore", similarityScore);
+					returnList.add(animeEntryMap);
+				}
+
+			} catch (SQLException e) {
+				return returnList;
+			}
+			System.out.println("Fetched from DB : " + returnList);
+			return returnList;
+		}
 }

@@ -21,5 +21,8 @@ public interface IUserDBRequestHandler {
 
 	public boolean updateUserSimilarity(String userIdOne, String userIdTwo,
 			double score);
+	
+	public List<Map<String, String>> getRatedAnimeFromSimilarUsers(String userId,
+			double score);
 
 }
