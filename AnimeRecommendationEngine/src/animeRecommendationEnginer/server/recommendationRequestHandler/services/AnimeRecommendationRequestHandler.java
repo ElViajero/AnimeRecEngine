@@ -222,4 +222,102 @@ public class AnimeRecommendationRequestHandler implements
 		return watchedAnimeMapList;
 
 	}
+
+	/**
+	 * GET RATINGS FOR SHOWS THAT I HAVE NOT WATCHED BUT OTHER USERS WHO SHARE
+	 * AT LEAST 5 ANIME WITH ME HAVE SEEN.
+	 * 
+	 */
+	@Override
+	public RecommendationResponseProperties getWeightedAnimePredictions(
+			Map<String, String> requestMap) {
+
+		String userId = requestMap.get("userId");
+		RecommendationResponseProperties response = new RecommendationResponseProperties();
+
+		// getRatedAnimeFromSimilarUsers
+
+		// getting all the ratings that fulfill the 5 shared anime.
+		List<Map<String, String>> recList = null; // getSimilarities(userId);
+
+		Set<String> userIds = new HashSet<String>();
+
+		// get a set of users
+		for (Map<String, String> rec : recList)
+			userIds.add(rec.get("userId"));
+
+		// Get the mean and std. dev.
+
+		Map<String, Map<String, Double>> weightedInfoMap = null; // getStats(userIds);
+
+		Map<String, Map<String, Double>> predictedScoreInfoMap = new HashMap<String, Map<String, Double>>();
+		double userMean = weightedInfoMap.get(userId).get("mean");
+		double userDev = weightedInfoMap.get(userId).get("stdDev");
+
+		for (Map<String, String> rec : recList) {
+			if (!predictedScoreInfoMap.containsKey(rec.get("animeId"))) {
+				Map<String, Double> temp = new HashMap<String, Double>();
+				temp.put("weight", 0.0);
+				temp.put("scoreSum", 0.0);
+
+				// TODO other information such as animeTitle, animeLink etc.
+				predictedScoreInfoMap.put(rec.get("animeId"), temp);
+			}
+
+			// Get the information of the user recommending anime
+
+			double mean = weightedInfoMap.get(rec.get("userId")).get("mean");
+			double stdDev = weightedInfoMap.get(rec.get("userId"))
+					.get("stdDev");
+
+			double tempSim = new Double(rec.get("similarity")) - 0.5;
+			double distance = (mean - new Double(rec.get("animeRating")))
+					/ stdDev * Math.signum(tempSim);
+
+			// calculate the new score
+			double newScore = userMean - distance * userDev;
+			newScore = Math.min(10, Math.max(1, newScore));
+			double insertScore = newScore
+					* Math.abs(tempSim)
+					+ predictedScoreInfoMap.get(rec.get("animeId")).get(
+							"scoreSum");
+
+			// put the new scores and weight in
+			predictedScoreInfoMap.get(rec.get("animeId")).put("scoreSum",
+					insertScore);
+			double insertWeight = Math.abs(tempSim)
+					+ predictedScoreInfoMap.get(rec.get("animeId")).get(
+							"weight");
+			predictedScoreInfoMap.get(rec.get("animeId")).put("weight",
+					insertWeight);
+
+			// calculate a score and add it to the map
+			double score = insertScore / insertWeight;
+			predictedScoreInfoMap.get("animeId").put("score", score);
+		}
+
+		// create a content map list to add to
+		// our reponse.
+		List<Map<String, String>> contentMapList = new ArrayList<Map<String, String>>();
+
+		for (String key : predictedScoreInfoMap.keySet()) {
+			Map<String, String> returnMap = new HashMap<String, String>();
+			for (Map.Entry<String, Double> entry : predictedScoreInfoMap.get(
+					key).entrySet()) {
+				String keyString = entry.getKey();
+				String valString = String.valueOf(entry.getValue());
+				returnMap.put(keyString, valString);
+			}
+
+			returnMap.put("animeId", key);
+			contentMapList.add(returnMap);
+		}
+
+		// sort the list
+		Collections.sort(contentMapList, new ScoreComparator());
+		// add it to the response
+		response.setContentList(contentMapList);
+
+		return response;
+	}
 }

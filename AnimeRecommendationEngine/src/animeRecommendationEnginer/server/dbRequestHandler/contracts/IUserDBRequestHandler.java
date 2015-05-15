@@ -19,4 +19,7 @@ public interface IUserDBRequestHandler {
 	public Map<String, Map<String, Double>> getUserAnimeStats(
 			List<String> userIdList);
 
+	public boolean updateUserSimilarity(String userIdOne, String userIdTwo,
+			double score);
+
 }

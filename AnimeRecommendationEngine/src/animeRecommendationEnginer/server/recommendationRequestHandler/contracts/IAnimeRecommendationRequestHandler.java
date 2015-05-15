@@ -21,4 +21,8 @@ public interface IAnimeRecommendationRequestHandler {
 
 	public RecommendationResponseProperties getWatched(
 			Map<String, String> requestMap);
+
+	public RecommendationResponseProperties getWeightedAnimePredictions(
+			Map<String, String> requestMap);
+
 }

@@ -9,6 +9,7 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 
 import animeRecommendationEnginer.server.dbRequestHandler.contracts.IAnimeDBRequestHandler;
+import animeRecommendationEnginer.server.dbRequestHandler.contracts.IUserDBRequestHandler;
 import animeRecommendationEnginer.server.recommendationRequestHandler.contracts.IUserRecommendationRequestHandler;
 
 /**
@@ -24,6 +25,8 @@ public class UserRecommendationRequestHandler implements
 
 	@Inject
 	IAnimeDBRequestHandler iAnimeDBRequestHandler;
+	@Inject
+	IUserDBRequestHandler iUserDBRequestHandler;
 
 	/**
 	 * 
@@ -110,6 +113,11 @@ public class UserRecommendationRequestHandler implements
 				cases++;
 			}
 		}
+
+		// calculate the score
+		double score = hits / cases;
+		// persist it.
+		iUserDBRequestHandler.updateUserSimilarity(userOneId, userTwoId, score);
 
 		return hits / cases;
 	}
