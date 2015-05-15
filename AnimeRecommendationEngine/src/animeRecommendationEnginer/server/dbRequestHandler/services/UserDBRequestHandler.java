@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -36,7 +37,7 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 	 */
 	@Override
 	public Map<String, Map<String, Double>> getUserAnimeStats(
-			List<String> userIdList) {
+			Set<String> userIdList) {
 		// parameter is a list of userIdList
 
 		Map<String, Map<String, Double>> returnMap = new HashMap<String, Map<String, Double>>();
@@ -133,7 +134,7 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 	 * 
 	 */
 	public List<Map<String, String>> getRatedAnimeFromSimilarUsers(
-			String userId, double score) {
+			String userId) {
 		
 		String query = "SELECT a.animeId as animeId, a.animeTitle as animeTitle, a.animeRating as animeRating, d.similarityScore as similarityScore FROM "
 				+ "WatchedAnimeTable as a "
@@ -164,6 +165,7 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 
 					// status map is now successful
 					status.put("Status", "Success");
+					
 					
 					//Making a anime entry map
 					Map<String, String> animeEntryMap = new HashMap<String, String>();
