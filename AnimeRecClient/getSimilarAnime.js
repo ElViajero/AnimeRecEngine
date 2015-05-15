@@ -4,10 +4,12 @@
 var getSimilarAnime = function () {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('readystatechange', animeResponse);
-    xhr.open("POST", "animeList.json", true);
-    var params = "data=";
+    xhr.open("POST", encodeURI("http://10.188.187.131:8080/AnimeRecommendationEngine/RequestHandler"), true);
+    var params = "";
     var info = {};
-    info["username"] = usernameSaver;
+    info["requestId"] = "Anime";
+    info["requestType"] = "getSimilar";
+    info["userId"] = $("#username1").val();
     info["animeId"] = $("#drop").val();
     params += JSON.stringify(info);
     xhr.send(params);

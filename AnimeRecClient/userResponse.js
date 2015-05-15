@@ -7,10 +7,12 @@
 var getUsers = function(){
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('readystatechange', userResponse);
-    xhr.open("POST", "userList.json", true);
-    var params = "data=";
+    xhr.open("POST", encodeURI("http://10.188.187.131:8080/AnimeRecommendationEngine/RequestHandler"), true);
+    var params = "";
     var info = {};
-    info["username"] = $("#username3").val();
+    info["requestId"]  = "User";
+    info["requestType"] = "getSimilarUsers"
+    info["userId"] = $("#username3").val();
     usernameSaver = info["username"];
     params += JSON.stringify(info);
     xhr.send(params);
@@ -21,6 +23,7 @@ var userResponse = function (evt) {
     var status = evt.target.status;
     if (evt.target.readyState == 4) {
         if (status == '200') {
+            console.log(evt.target.responseText);
             var result = JSON.parse(evt.target.responseText);
             if (result["success"] == true) {
                 var content = "";
@@ -55,10 +58,12 @@ var userResponse = function (evt) {
 
 var userDiv = function(obj){
     var div = "<div class='col-md-4 text-center'><div class='well'><a target='_blank' style='color:inherit;text-decoration:inherit;' href='";
-    div += obj["link"]+"'><h3>";
-    div += obj["name"];
+    //div += obj["userLink"]+"'><h3>";
+    div += "'><h3>";
+    div += obj["userId"];
     div +="</h3><div class='img-holder text-center'>";
-    div +="<img class='img-holder' src='"+obj["img"]+"'></div></a><br>"
+    //div +="<img class='img-holder' src='"+obj["img"]+"'></div></a><br>";
+    div += "<img class = 'img-holder' src='noimage.png'></div></a><br>";
     div += "<input type='button' value='Get Suggestions' val='"+obj["name"]+"' class='user btn btn-default'";
     div += "</div></div>";
     return div;
