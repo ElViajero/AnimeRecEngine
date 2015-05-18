@@ -26,7 +26,7 @@ public class GetWatchedTest {
 	// BufferedReader x = new BufferedReader(new InputStreamReader(stream));
 	// String line = x.readLine();
 	// while (line != null) {
-	// System.out.println(line);
+	// 
 	// line = x.readLine();
 	// }
 	// }
@@ -45,7 +45,7 @@ public class GetWatchedTest {
 		 * InputStream stream = response.getEntity().getContent();
 		 * BufferedReader x = new BufferedReader(new InputStreamReader(stream));
 		 * String line = x.readLine(); while (line != null) {
-		 * System.out.println(line); line = x.readLine(); }
+		 *  }
 		 */
 	}
 }

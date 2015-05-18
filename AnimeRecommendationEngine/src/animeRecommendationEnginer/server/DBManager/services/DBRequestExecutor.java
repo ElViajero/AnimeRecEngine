@@ -33,7 +33,7 @@ public class DBRequestExecutor implements IDBRequestExecutor {
 			} catch (ClassNotFoundException e1) {
 				// TODO Auto-generated catch block
 
-				System.out.println("class not found.");
+				
 				e1.printStackTrace();
 			}
 			try {
@@ -41,7 +41,7 @@ public class DBRequestExecutor implements IDBRequestExecutor {
 						"root", "");
 				statementInstance = connectionInstance.createStatement();
 			} catch (SQLException e) {
-				System.out.println("SQLException in getDBManager ");
+				
 				e.printStackTrace();
 			}
 		}
@@ -53,7 +53,7 @@ public class DBRequestExecutor implements IDBRequestExecutor {
 		getDBManagerInstance();
 
 		if (statementInstance == null) {
-			System.out.println("Statement Instance is going NULL.");
+			
 		}
 
 		ResultSet resultSet = null;
@@ -61,11 +61,11 @@ public class DBRequestExecutor implements IDBRequestExecutor {
 			resultSet = statementInstance.executeQuery(query);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			System.out.println("SQLException in executeQuery");
+			
 			e.printStackTrace();
 
 		}
-		System.out.println("resultSet : " + resultSet);
+		
 		return resultSet;
 	}
 
@@ -75,14 +75,14 @@ public class DBRequestExecutor implements IDBRequestExecutor {
 		getDBManagerInstance();
 
 		if (statementInstance == null) {
-			System.out.println("NULL");
+			
 		}
 
 		ResultSet resultSet = null;
 		try {
 			statementInstance.executeUpdate(query);
 		} catch (SQLException e) {
-			System.out.println("SQLException in executeUpdate");
+			
 			e.printStackTrace();
 			return false;
 

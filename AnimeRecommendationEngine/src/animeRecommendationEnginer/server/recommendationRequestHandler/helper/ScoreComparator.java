@@ -13,10 +13,16 @@ public class ScoreComparator implements Comparator<Map<String, String>> {
 
 	@Override
 	public int compare(Map<String, String> o1, Map<String, String> o2) {
-
-		Double scoreOne = Double.parseDouble(o1.get("score"));
-		Double scoreTwo = Double.parseDouble(o2.get("score"));
-		return -1 * scoreOne.compareTo(scoreTwo);
+		try {
+			Double scoreOne = Double.parseDouble(o1.get("score"));
+			Double scoreTwo = Double.parseDouble(o2.get("score"));
+			return -1 * scoreOne.compareTo(scoreTwo);
+		} catch (Exception e) {
+			// 
+			// 
+			// System.out.flush();
+			return -1;
+		}
 
 	}
 

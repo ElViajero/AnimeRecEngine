@@ -52,7 +52,6 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 
 			List<Double> ratingsArr = new ArrayList<Double>();
 
-			System.out.println("userId is: " + userId);
 			// formulate the query
 			String query = "SELECT * FROM WatchedAnimeTable WHERE userId="
 					+ "\"" + userId + "\" AND animeRating NOT LIKE \"-\"" + ";";
@@ -105,7 +104,7 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 				return returnMap;
 			}
 		}
-		System.out.println("Fetched from DB : " + returnMap);
+
 		return returnMap;
 	}
 
@@ -145,25 +144,37 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 	@Override
 	/*
 	 * This method gets the rated anime from similar users.
+	 * 
+	 * GETTING THE SCORE, ANIME TITLE, RATING INFO FROM USERS WITH WHOM WE SHARE
+	 * >=5 SHOWS THAT HAVE BEEN RATED.
 	 */
 	public List<Map<String, String>> getRatedAnimeFromSimilarUsers(String userId) {
 
-		String query = "SELECT a.userId as userId, a.animeId as animeId, a.animeTitle as animeTitle, a.animeRating as animeRating, d.similarityScore as similarityScore FROM "
-				+ "WatchedAnimeTable as a "
-				+ "INNER JOIN "
-				+ "(SELECT c.userId as userId FROM WatchedAnimeTable as b INNER JOIN WatchedAnimeTable as c "
-				+ "ON(b.UserId LIKE \""
+		String query = "select userId, animeTitle, animeId, userAnimeRating, myAnimeRating, "
+				+ "similarityScore from (UserSimilarityTable as S JOIN ( SELECT R.userId as userId, "
+				+ "R.animeTitle as animeTitle, R.animeId AS animeId, R.userAnimeRating AS "
+				+ "userAnimeRating, E.animeRating AS myAnimeRating FROM "
+				+ "( (SELECT animeId,animeRating FROM WatchedAnimeTable where userId=\""
 				+ userId
-				+ "\" AND b.AnimeId LIKE c.AnimeId AND b.AnimeRating NOT LIKE \"-\" AND c.AnimeRating NOT LIKE \"-\") "
-				+ "GROUP BY c.userId HAVING COUNT(c.animeId) > 5 ) as e "
-				+ "ON (a.userId LIKE e.userId) "
-				+ "INNER JOIN usersimilaritytable as d "
-				+ "ON (d.userOneId LIKE \""
+				+ "\" AND "
+				+ "animeRating NOT LIKE  \"-\") AS E JOIN (SELECT Y.userId as userId,Y.animeId as "
+				+ "animeId,Y.animeTitle as animeTitle,Y.animeRating as userAnimeRating FROM "
+				+ "((SELECT b.userId FROM ((SELECT * FROM WatchedAnimeTable where userId=\""
 				+ userId
-				+ "\" AND d.userTwoId LIKE a.userId) "
-				+ "WHERE a.animeId NOT IN "
-				+ "(SELECT animeId FROM WatchedAnimeTable WHERE userId =\""
-				+ userId + "\") " + "and a.animeRating NOT LIKE \"-\"";
+				+ "\" AND animeRating NOT LIKE  \"-\")AS a"
+				+ " JOIN (SELECT * FROM WatchedAnimeTable "
+				+ "WHERE userId NOT LIKE \""
+				+ userId
+				+ "\" AND animeRating NOT LIKE \"-\") AS b ON a.animeId "
+				+ " = b.animeId) GROUP BY (b.userId) HAVING COUNT(b.animeId)>5) AS X JOIN "
+				+ "(SELECT * FROM WatchedAnimeTable where userId NOT LIKE \""
+				+ userId
+				+ "\" AND animeRating "
+				+ "NOT LIKE  \"-\") AS Y ON X.userId = Y.userId)) AS R ON R.animeId=E.animeId)) AS "
+				+ "Q ON S.userOneId=\""
+				+ userId
+				+ "\" and S.userTwoId =Q.userId) WHERE userId NOT LIKE \""
+				+ userId + "\";";
 
 		System.out.println("The query is : " + query);
 
@@ -189,8 +200,9 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 				userId = queryResult.getString("userId");
 				String animeId = queryResult.getString("animeId");
 				String animeTitle = queryResult.getString("animeTitle");
+				String myAnimeRating = queryResult.getString("myAnimeRating");
+				String animeRating = queryResult.getString("userAnimeRating");
 
-				String animeRating = queryResult.getString("animeRating");
 				try {
 					Double.parseDouble(animeRating);
 				} catch (NumberFormatException e) {
@@ -202,12 +214,14 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 				animeEntryMap.put("userId", userId);
 				animeEntryMap.put("animeId", animeId);
 				animeEntryMap.put("animeTitle", animeTitle);
-				animeEntryMap.put("animeRating", animeRating);
+				animeEntryMap.put("userAnimeRating", animeRating);
 				animeEntryMap.put("similarityScore", similarityScore);
+				animeEntryMap.put("myAnimeRating", myAnimeRating);
 				returnList.add(animeEntryMap);
 			}
 
 		} catch (SQLException e) {
+			e.printStackTrace();
 			return returnList;
 		}
 		System.out.println("Fetched from DB in getAnimeFromSimilarUsers : "
@@ -236,7 +250,7 @@ public class UserDBRequestHandler implements IUserDBRequestHandler {
 		} catch (SQLException e) {
 			return returnUserIdList;
 		}
-		System.out.println(returnUserIdList);
+
 		System.out.flush();
 
 		return returnUserIdList;

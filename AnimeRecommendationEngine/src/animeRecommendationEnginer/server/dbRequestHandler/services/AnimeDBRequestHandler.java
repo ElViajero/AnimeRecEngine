@@ -62,7 +62,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 		} catch (SQLException e) {
 			return resultMapList;
 		}
-		System.out.println("Fetched from DB : " + resultMapList);
+		
 		return resultMapList;
 	}
 
@@ -144,7 +144,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 			if (animeEntry.containsKey("animeLink")) {
 				String[] parts = animeEntry.get("animeLink").split("/");
 				animeId = parts[2];
-				System.out.println("The id extracted is : " + animeId);
+				
 				animeEntry.put("animeId", animeId); // add it to the map for
 													// later use.
 			}
@@ -161,7 +161,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 
 		for (Map<String, String> animeEntry : requestMapList) {
 
-			System.out.println("animeEntry is : " + animeEntry);
+			
 
 			// try and extract fields.
 			String animeId = animeEntry.containsKey("animeId") ? animeEntry
@@ -261,7 +261,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 
 			}
 		} catch (SQLException e) {
-			System.out.println("something went wrong will fetching anime.");
+			
 			e.printStackTrace();
 		}
 
@@ -300,7 +300,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 					+ "recommenderId=VALUES(recommenderId);";
 
 			if (!iDBRequestExecutor.exeucteUpdate(query)) {
-				System.out.println("something is going wrong.");
+				
 				System.out.flush();
 				return false;
 			}
@@ -356,7 +356,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 				animeEntryMap.put("recommenderId", recommenderId);
 				animeEntryMap.put("animeTitle", animeTitle);
 				resultMapList.add(animeEntryMap);
-				System.out.println("found entry : " + animeEntryMap);
+				
 				System.out.flush();
 			}
 		} catch (SQLException e) {
@@ -410,7 +410,7 @@ public class AnimeDBRequestHandler implements IAnimeDBRequestHandler {
 				resultMapList.add(animeEntryMap);
 			}
 		} catch (SQLException e) {
-			System.out.println("something went wrong while fetching anime.");
+			
 			e.printStackTrace();
 		}
 		return resultMapList;

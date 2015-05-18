@@ -29,7 +29,7 @@ public class RequestDispatcher implements IRequestDispatcher {
 	public RecommendationResponseProperties dispatchRequest(
 			Map<String, String> requestMap) {
 
-		System.out.println("Reaching dispatchRequest in RequestDispatcher.");
+		
 		try {
 
 			// get the class object

@@ -13,14 +13,13 @@ import javax.inject.Inject;
 
 import animeRecommendationEnginer.server.dbRequestHandler.contracts.IAnimeDBRequestHandler;
 import animeRecommendationEnginer.server.dbRequestHandler.contracts.IUserDBRequestHandler;
+import animeRecommendationEnginer.server.fileWriter.contracts.IFileWriter;
 import animeRecommendationEnginer.server.recommendationRequestHandler.contracts.IAnimeRecommendationRequestHandler;
 import animeRecommendationEnginer.server.recommendationRequestHandler.contracts.IUserRecommendationRequestHandler;
 import animeRecommendationEnginer.server.recommendationRequestHandler.helper.RequestExecutor;
 import animeRecommendationEnginer.server.recommendationRequestHandler.helper.ScoreComparator;
 import animeRecommendationEnginer.server.recommendationRequestHandler.properties.RecommendationResponseProperties;
 import animeRecommendationEnginer.server.reflectionManager.contracts.IReflectionManager;
-
-import com.google.gson.Gson;
 
 /**
  * This class handles anime recommendations.
@@ -46,6 +45,9 @@ public class AnimeRecommendationRequestHandler implements
 
 	@Inject
 	IUserDBRequestHandler iUserDBRequestHandler;
+
+	@Inject
+	IFileWriter iFilerWriter;
 
 	/**
 	 * @author tejasvamsingh
@@ -93,7 +95,7 @@ public class AnimeRecommendationRequestHandler implements
 		Collections.sort(prunnedRecommendationAnimeMapList,
 				new ScoreComparator());
 		response.setContentList(prunnedRecommendationAnimeMapList);
-		System.out.println("response is :" + new Gson().toJson(response));
+
 		return response;
 	}
 
@@ -145,8 +147,6 @@ public class AnimeRecommendationRequestHandler implements
 			recommendedAnimeMapList.remove(0);
 		}
 
-		System.out.println("size of list :" + recommendedAnimeMapList.size());
-		System.out.println("list :" + recommendedAnimeMapList);
 		response.setContentList(recommendedAnimeMapList);
 		response.setSuccess("true");
 		return response;
@@ -212,8 +212,6 @@ public class AnimeRecommendationRequestHandler implements
 			String htmlParserString) {
 		String htmlSource = requestExecutor.getHTMLSource(urlString);
 
-		System.out.println("HTML Source list is : " + htmlSource);
-
 		// parse the content
 		Object classObject = iReflectionManager
 				.getMyBeanFromClassName(prefixString + htmlParserString
@@ -271,7 +269,6 @@ public class AnimeRecommendationRequestHandler implements
 			userDev = weightedInfoMap.get(userId).get("stdDev");
 		} catch (NullPointerException e) {
 
-			System.out.println("The weightedInfoMap is : " + weightedInfoMap);
 		}
 
 		for (Map<String, String> rec : recList) {
@@ -291,23 +288,39 @@ public class AnimeRecommendationRequestHandler implements
 				mean = weightedInfoMap.get(rec.get("userId")).get("mean");
 				stdDev = weightedInfoMap.get(rec.get("userId")).get("stdDev");
 			} catch (NullPointerException e) {
-				System.out.println("The userId is : " + rec.get("userId"));
-				System.out.println("The mean is : " + mean);
-				System.out.println("The stdDev is : " + stdDev);
-				System.out.println("The rec is : " + rec);
-				System.out.println("The weightedInfoMap is : "
-						+ weightedInfoMap);
-				System.out.flush();
+
+				// System.out.println("The weightedInfoMap is : "
+				// + weightedInfoMap);
+				// System.out.flush();
 
 			}
 
-			double tempSim = new Double(rec.get("similarityScore")) - 0.5;
-			double distance = (mean - new Double(rec.get("animeRating")))
-					/ stdDev * Math.signum(tempSim);
+			double tempSim = Double.parseDouble(rec.get("similarityScore")) - 0.5;
+			int tempSimSign = (int) Math.signum(tempSim);
+			tempSim = Math.pow(tempSim, 8);
+			tempSim *= tempSimSign;
+
+			double distance = 0;
+			try {
+				distance = (mean - new Double(rec.get("userAnimeRating")))
+						/ stdDev * Math.signum(tempSim);
+			} catch (NullPointerException e) {
+
+			}
+
+			// if (printFlag == true) {
+			// printFlag = false;
+			// System.out.println("tempSim is : " + tempSim);
+			// System.out.println("distance is : " + distance);
+			// System.out.println("mean is : " + distance);
+			// System.out.println("stdDev is : " + stdDev);
+			// System.out.println("mean is : " + mean);
+			// System.out.println("newScore is : "+ newScore);
+			// }
 
 			// calculate the new score
 			double newScore = userMean - distance * userDev;
-			newScore = Math.min(10, Math.max(1, newScore));
+			// newScore = Math.min(10, Math.max(1, newScore));
 			double insertScore = newScore
 					* Math.abs(tempSim)
 					+ Double.parseDouble(predictedScoreInfoMap.get(
@@ -322,19 +335,26 @@ public class AnimeRecommendationRequestHandler implements
 							rec.get("animeId")).get("weight"));
 			predictedScoreInfoMap.get(rec.get("animeId")).put("weight",
 					String.valueOf(insertWeight));
-			if (insertWeight < 1)
-				continue;
-			// calculate a score and add it to the map
+
+			// if (insertWeight < 1)
+			// continue;
+
+			// calculate a total score and add it to the map
+
 			double score = insertScore / insertWeight;
 			score = Math.min(score, 10);
 			try {
+				String myAnimeRating = rec.get("myAnimeRating");
 				predictedScoreInfoMap.get(animeId).put("score",
 						String.valueOf(score));
-
+				predictedScoreInfoMap.get(animeId).put("myAnimeRating",
+						myAnimeRating);
 			} catch (NullPointerException e) {
-				System.out.println("The predictedScoreInfoMap is : "
-						+ predictedScoreInfoMap);
+				// System.out.println("The predictedScoreInfoMap is : "
+				// + predictedScoreInfoMap);
+
 			}
+
 		}
 
 		// create a content map list to add to
@@ -360,12 +380,17 @@ public class AnimeRecommendationRequestHandler implements
 
 		// sort the list
 		Collections.sort(contentMapList, new ScoreComparator());
+
 		// add it to the response
 		response.setContentList(contentMapList);
 
-		System.out.println("contentMapList is : " + contentMapList);
-		System.out.flush();
+		// System.out.flush();
 		response.setSuccess("true");
+
+		System.out.println("ContentMapList is : " + contentMapList);
+
+		// Write the contentMapList to file.
+		iFilerWriter.writePredictedScoreToFile(contentMapList);
 
 		return response;
 	}

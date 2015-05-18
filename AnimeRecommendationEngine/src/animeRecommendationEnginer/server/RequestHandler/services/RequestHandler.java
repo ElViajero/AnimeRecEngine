@@ -81,7 +81,7 @@ public class RequestHandler extends HttpServlet {
 		RecommendationResponseProperties result = iRequestDispatcher
 				.dispatchRequest(requestMap);
 
-		System.out.println(gson.toJson(result));
+		
 
 		// return the response
 

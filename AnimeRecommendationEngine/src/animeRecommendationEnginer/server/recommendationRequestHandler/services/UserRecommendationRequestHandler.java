@@ -42,7 +42,7 @@ public class UserRecommendationRequestHandler implements
 		List<Map<String, String>> results = iAnimeDBRequestHandler
 				.getSharedAnime(userOneId, userTwoId);
 
-		System.out.println("results is : " + results);
+		
 
 		// It's possible that there are no shared anime.
 		if (results.get(0).get("Status").equals("Failed"))
@@ -72,8 +72,8 @@ public class UserRecommendationRequestHandler implements
 				userTwoRankList.add(sharedAnimeMap.get("userTwoRating"));
 		}
 
-		System.out.println("userOneRankList is : " + userOneRankList);
-		System.out.println("userTwoRankList is : " + userTwoRankList);
+		
+		
 
 		// check here if we actually have some ratings
 		if (userOneRankList.isEmpty() || userTwoRankList.isEmpty())
@@ -124,7 +124,7 @@ public class UserRecommendationRequestHandler implements
 	public RecommendationResponseProperties getSimilarUsers(
 			Map<String, String> requestMap) {
 
-		System.out.println("inside get similar users");
+		
 		System.out.flush();
 		RecommendationResponseProperties response = new RecommendationResponseProperties();
 		response.setErrorMessage("No similar users found.");
