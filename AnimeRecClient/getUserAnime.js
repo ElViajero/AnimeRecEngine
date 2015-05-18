@@ -7,11 +7,15 @@
 var getUserAnime = function () {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('readystatechange', animeResponse);
-    xhr.open("POST", "animeList.json", true);
-    var params = "data=";
+
+    xhr.open("POST", encodeURI("http://10.188.187.131:8080/AnimeRecommendationEngine/RequestHandler"), true);
+    var params = "";
     var info = {};
-    info["username"] = $("#username4");
+    info["requestId"] = "Anime";
+    info["requestType"] = "getWeightedAnimePredictions";
+    info["userId"] = $("#username4").val();
     params += JSON.stringify(info);
+    console.log(params);
     xhr.send(params);
     $(this).one("click", getUserAnime);
 };
